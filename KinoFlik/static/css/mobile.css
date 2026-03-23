@@ -1,0 +1,419 @@
+/* ============================================================
+   KINOFLIK — МОБИЛЬНАЯ ВЕРСИЯ
+   Подключи в base.html последним:
+   <link rel="stylesheet" href="/static/css/mobile.css">
+   ============================================================ */
+
+/* ──────────────────────────────────────────────────────────
+   ПЛАНШЕТ (до 1024px)
+────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+  }
+  .page-content {
+    margin-left: 200px;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   МОБИЛЬНЫЙ (до 768px) — основная точка
+────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* === SIDEBAR — выдвигается поверх контента === */
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    height: 100%;
+    width: 260px;
+    z-index: 1100;
+    transition: left .3s ease;
+    box-shadow: none;
+    padding-top: 60px;
+  }
+
+  .sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 24px rgba(0,0,0,.6);
+  }
+
+  /* Оверлей при открытом сайдбаре */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(17,22,20,.62);
+    z-index: 1099;
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  /* === PAGE CONTENT — на весь экран === */
+  .page-content {
+    margin-left: 0 !important;
+    padding-bottom: 70px; /* место для нижней навигации */
+  }
+
+  /* === TOP BAR === */
+  .top-bar {
+    padding: 0 12px;
+    height: 52px;
+  }
+
+  .logo {
+    font-size: 1.3rem !important;
+  }
+
+  /* Поиск в топбаре — скрываем на маленьких, показываем иконку */
+  .search-wrapper {
+    display: none;
+  }
+
+  .top-bar-right {
+    gap: 6px;
+  }
+
+  /* Burger всегда виден */
+  .burger-menu {
+    display: flex !important;
+  }
+
+  /* === НИЖНЯЯ НАВИГАЦИЯ (как в Netflix) === */
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-secondary, #161616);
+    border-top: 1px solid var(--border, #222);
+    z-index: 1050;
+    align-items: stretch;
+  }
+
+  .mbn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--text-muted, #666);
+    text-decoration: none;
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .3px;
+    transition: color .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mbn-item i {
+    font-size: 1.2rem;
+  }
+
+  .mbn-item.active,
+  .mbn-item:active {
+    color: var(--accent, #e50914);
+  }
+
+  /* === HERO / MAIN PAGE === */
+  .hero-section {
+    height: 56vw !important;
+    min-height: 220px;
+    max-height: 380px;
+  }
+
+  .hero-info {
+    padding: 12px 16px !important;
+  }
+
+  .hero-title {
+    font-size: 1.4rem !important;
+  }
+
+  .hero-desc {
+    display: none;
+  }
+
+  .hero-actions {
+    gap: 8px;
+  }
+
+  .hero-btn {
+    padding: 8px 16px !important;
+    font-size: .85rem !important;
+  }
+
+  /* === GENRE PILLS === */
+  .genre-quick-strip {
+    padding: 8px 12px !important;
+    gap: 6px !important;
+  }
+
+  .genre-pill {
+    padding: 5px 12px !important;
+    font-size: .8rem !important;
+  }
+
+  /* === ГОРИЗОНТАЛЬНЫЕ РЯДЫ === */
+  .section-title {
+    font-size: 1rem !important;
+    padding: 0 12px;
+  }
+
+  .horiz-scroll-section {
+    padding: 0 12px !important;
+  }
+
+  .movie-card {
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+
+  .movie-card img {
+    height: 170px !important;
+  }
+
+  .movie-card-title {
+    font-size: .75rem !important;
+  }
+
+  /* === TOP 10 ГРИД === */
+  .top10-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 0 12px !important;
+  }
+
+  .top10-number {
+    font-size: 3rem !important;
+  }
+
+  /* === КАРТОЧКИ ФИЛЬМОВ (страница /movie) === */
+  .movies-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+
+  /* === СТРАНИЦА ФИЛЬМА === */
+  .movie-detail-hero {
+    flex-direction: column !important;
+    gap: 16px;
+    padding: 12px !important;
+  }
+
+  .movie-poster {
+    width: 140px !important;
+    margin: 0 auto;
+  }
+
+  .movie-info-block {
+    text-align: center;
+  }
+
+  .movie-title-big {
+    font-size: 1.4rem !important;
+  }
+
+  /* === ТВ СТРАНИЦА === */
+  .tv-wrapper {
+    padding: 8px !important;
+    padding-top: calc(52px + 8px) !important;
+  }
+
+  .tv-page {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .player-box {
+    min-height: 220px !important;
+    border-radius: 10px !important;
+  }
+
+  .player-placeholder {
+    min-height: 220px !important;
+  }
+
+  .tv-right {
+    height: auto !important;
+    max-height: 50vh !important;
+  }
+
+  /* Плеер контролы — компактнее */
+  .kf-volume-slider {
+    width: 70px !important;
+  }
+
+  .kf-channel-label {
+    display: none;
+  }
+
+  /* Каналы — крупнее тапзона */
+  .ch-item {
+    padding: 12px 10px !important;
+  }
+
+  .ch-logo {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  /* === ПРОФИЛЬ === */
+  .profile-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+    gap: 12px;
+    padding: 16px !important;
+  }
+
+  .profile-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+
+  /* === ЧАТT === */
+  .chat-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chat-friends-panel {
+    display: none;
+  }
+
+  .chat-friends-panel.open {
+    display: flex !important;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: var(--bg-primary);
+    flex-direction: column;
+  }
+
+  /* === СТАТИСТИКА === */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* === ПОДПИСКИ === */
+  .plans-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+    padding: 0 12px;
+  }
+
+  /* === СПОРТ === */
+  .sport-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* === ОБЩИЕ ТАБЛИЦЫ И ГРИДЫ === */
+  .platform-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .mood-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* === ФОРМЫ === */
+  input, select, textarea {
+    font-size: 16px !important; /* предотвращает zoom на iOS */
+  }
+
+  /* === МОДАЛКИ === */
+  .modal-content {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 10px auto !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* === ТОСТ === */
+  #toast {
+    bottom: 70px !important; /* над нижней навигацией */
+    left: 12px !important;
+    right: 12px !important;
+    text-align: center;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   ОЧЕНЬ МАЛЕНЬКИЙ ЭКРАН (до 360px)
+────────────────────────────────────────────────────────── */
+@media (max-width: 360px) {
+  .movies-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .movie-card {
+    min-width: 100px !important;
+    max-width: 100px !important;
+  }
+
+  .mbn-item span {
+    display: none; /* только иконки */
+  }
+
+  .mbn-item {
+    font-size: 0;
+  }
+
+  .mbn-item i {
+    font-size: 1.4rem;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   НИЖНЯЯ НАВИГАЦИЯ — по умолчанию скрыта на десктопе
+────────────────────────────────────────────────────────── */
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* ──────────────────────────────────────────────────────────
+   ОВЕРЛЕЙ САЙДБАРА — по умолчанию скрыт
+────────────────────────────────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+}
+
+/* ──────────────────────────────────────────────────────────
+   SMOOTH SCROLL и TOUCH улучшения
+────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ch-list,
+  .horiz-scroll-section,
+  .cat-tabs {
+    scroll-snap-type: x mandatory;
+  }
+
+  .ch-item,
+  .movie-card {
+    scroll-snap-align: start;
+  }
+
+  /* Убираем hover эффекты на тач устройствах */
+  @media (hover: none) {
+    .ch-item:hover {
+      background: transparent;
+      transform: none;
+    }
+
+    .movie-card:hover {
+      transform: none;
+    }
+  }
+}

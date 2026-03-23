@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Поиск: {{ query }} — KinoFlik{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-page {
+        padding: 40px 60px 80px;
+    }
+
+    .search-page h1 {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 6px;
+    }
+
+    .search-page h1 span {
+        color: #e50000;
+    }
+
+    .search-count {
+        color: rgba(255, 255, 255, .4);
+        font-size: 14px;
+        margin-bottom: 32px;
+    }
+
+    .search-section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        margin: 28px 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .search-section-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(255, 255, 255, .08);
+    }
+
+    .search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 16px;
+    }
+
+    .search-card {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #161616;
+        cursor: pointer;
+        transition: transform .2s;
+    }
+
+    .search-card:hover {
+        transform: scale(1.04);
+    }
+
+    .search-card img {
+        width: 100%;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        display: block;
+    }
+
+    .search-card-info {
+        padding: 10px;
+    }
+
+    .search-card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .search-card-meta {
+        font-size: 11px;
+        color: rgba(255, 255, 255, .4);
+    }
+
+    .search-rating {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, .8);
+        border-radius: 6px;
+        padding: 2px 7px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #f5a623;
+    }
+
+    .search-empty {
+        text-align: center;
+        padding: 80px 20px;
+    }
+
+    .search-empty i {
+        font-size: 52px;
+        color: rgba(255, 255, 255, .08);
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .search-empty p {
+        color: rgba(255, 255, 255, .3);
+        font-size: 15px;
+    }
+
+    .badge-new {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: #e50000;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 5px;
+        letter-spacing: .5px;
+    }
+
+    @media (max-width: 700px) {
+        .search-page {
+            padding: 20px 16px 60px;
+        }
+
+        .search-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-page">
+    <h1>Результаты для: <span>{{ query }}</span></h1>
+    {% set total = movies|length + series|length %}
+    <p class="search-count">Найдено: {{ total }} {{ 'результат' if total == 1 else ('результата' if total in [2,3,4]
+        else 'результатов') }}</p>
+
+    {% if not movies and not series %}
+    <div class="search-empty">
+        <i class="fas fa-search"></i>
+        <p>По запросу «{{ query }}» ничего не найдено</p>
+        <a href="/movie"
+            style="display:inline-block;margin-top:20px;padding:10px 24px;background:#e50000;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Все
+            фильмы</a>
+    </div>
+    {% else %}
+
+    {% if movies %}
+    <div class="search-section-title">Фильмы</div>
+    <div class="search-grid">
+        {% for m in movies %}
+        <a href="/movie/{{ m.id }}" class="search-card">
+            {% if m.year|is_new %}<span class="badge-new">НОВИНКА</span>{% endif %}
+            {% if m.rating %}<span class="search-rating">★ {{ '%.1f'|format(m.rating|float) }}</span>{% endif %}
+            <img src="{% if m.poster %}/static/posters/{{ m.poster }}{% else %}/static/img/no_poster.svg{% endif %}"
+                alt="{{ m.title }}" loading="lazy" onerror="this.src='/static/img/no_poster.svg'">
+            <div class="search-card-info">
+                <div class="search-card-title">{{ m.title }}</div>
+                <div class="search-card-meta">{{ m.year or '' }}{% if m.genre %} · {{ m.genre.split(',')[0].strip() }}{%
+                    endif %}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if series %}
+    <div class="search-section-title">Сериалы</div>
+    <div class="search-grid">
+        {% for s in series %}
+        <a href="/series/{{ s.id }}" class="search-card">
+            {% if s.rating %}<span class="search-rating">★ {{ '%.1f'|format(s.rating|float) }}</span>{% endif %}
+            <img src="{% if s.poster %}/static/posters/{{ s.poster }}{% else %}/static/img/no_poster.svg{% endif %}"
+                alt="{{ s.title }}" loading="lazy" onerror="this.src='/static/img/no_poster.svg'">
+            <div class="search-card-info">
+                <div class="search-card-title">{{ s.title }}</div>
+                <div class="search-card-meta">{% if s.year %}{{ s.year }}{% endif %}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% endif %}
+</div>
+{% endblock %}

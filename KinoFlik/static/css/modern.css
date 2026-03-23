@@ -1,0 +1,895 @@
+/* ============================================================
+   KINOFLIK — MODERN.CSS
+   Страницы: фильм/сериал детально, ТВ, спорт, подписки
+   Переменные — только в style.css!
+   ============================================================ */
+
+/* ============================================================
+   СТРАНИЦА КОНТЕНТА (список фильмов/сериалов)
+   ============================================================ */
+.page-content {
+    padding-top: calc(var(--header-height) + 28px);
+    min-height: 100vh;
+}
+
+.page-header {
+    padding: 28px 0 18px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+}
+
+.page-header h1 {
+    margin-bottom: 10px;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    max-width: 580px;
+}
+
+/* ============================================================
+   СТРАНИЦА ФИЛЬМА / СЕРИАЛА
+   ============================================================ */
+.movie-hero {
+    position: relative;
+    min-height: 65vh;
+    margin-top: var(--header-height);
+    display: flex;
+    align-items: center;
+}
+
+.movie-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(28px) brightness(0.28);
+    transform: scale(1.18);
+}
+
+.movie-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top,
+            var(--bg-primary) 0%,
+            rgba(8, 8, 15, .85) 100%);
+}
+
+.movie-detail {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    gap: 44px;
+    align-items: start;
+    padding: 56px 0 40px;
+}
+
+.movie-poster-wrap {
+    position: sticky;
+    top: calc(var(--header-height) + 18px);
+}
+
+.movie-poster-wrap .poster {
+    width: 100%;
+    aspect-ratio: 2/3;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-hover);
+}
+
+.movie-poster-wrap .poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Кнопки под постером */
+.poster-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.poster-actions .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Инфо справа */
+.movie-info h1 {
+    font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+    margin-bottom: 6px;
+}
+
+.movie-info .original-title {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+    font-style: italic;
+}
+
+/* Рейтинг-блок */
+.movie-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.rating-block {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 18px;
+    border-radius: var(--radius-md);
+    border: 1px solid;
+}
+
+.rating-block.high {
+    background: rgba(61, 214, 124, .08);
+    border-color: rgba(61, 214, 124, .2);
+}
+
+.rating-block.high .r-num {
+    color: var(--rating-high);
+}
+
+.rating-block.medium {
+    background: rgba(245, 197, 24, .08);
+    border-color: rgba(245, 197, 24, .2);
+}
+
+.rating-block.medium .r-num {
+    color: var(--rating-mid);
+}
+
+.r-num {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.r-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Таблица метаданных */
+.movie-meta-table {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 10px 18px;
+    margin-bottom: 26px;
+    font-size: 0.92rem;
+}
+
+.movie-meta-table dt {
+    color: var(--text-muted);
+}
+
+.movie-meta-table dd {
+    color: var(--text-primary);
+}
+
+.movie-meta-table dd a {
+    color: var(--accent);
+}
+
+.movie-meta-table dd a:hover {
+    text-decoration: underline;
+}
+
+/* Описание */
+.movie-description {
+    color: var(--text-secondary);
+    font-size: 0.97rem;
+    line-height: 1.82;
+    margin-bottom: 26px;
+    max-width: 660px;
+}
+
+.movie-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Звёзды рейтинга */
+.rate-widget {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 22px;
+}
+
+.rate-star {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--transition), transform var(--transition);
+}
+
+.rate-star:hover,
+.rate-star.active {
+    color: var(--rating-mid);
+    transform: scale(1.14);
+}
+
+/* ============================================================
+   ТВ-СТРАНИЦА
+   ============================================================ */
+.tv-page {
+    padding-top: calc(var(--header-height) + 18px);
+    min-height: 100vh;
+}
+
+.tv-layout {
+    display: grid;
+    grid-template-columns: 1fr 310px;
+    gap: 22px;
+    padding: 18px 0;
+}
+
+/* Плеер */
+.tv-player-wrap {
+    background: #0e0e0e;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+.tv-player {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #0e0e0e;
+}
+
+.tv-player video,
+.tv-player iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.tv-player-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 15px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+}
+
+.tv-player-bar .ch-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: rgba(224, 80, 80, .12);
+    border: 1px solid rgba(224, 80, 80, .28);
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--rating-low);
+}
+
+.live-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rating-low);
+    animation: pulse 1.5s infinite;
+}
+
+/* Список каналов */
+.tv-channels-panel {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - var(--header-height) - 56px);
+    border: 1px solid var(--border);
+}
+
+.tv-channels-header {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.tv-channels-header h3 {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.tv-search {
+    width: 100%;
+    padding: 9px 13px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    transition: border-color var(--transition);
+}
+
+.tv-search::placeholder {
+    color: var(--text-muted);
+}
+
+.tv-search:focus {
+    border-color: var(--accent);
+}
+
+.tv-cats {
+    display: flex;
+    gap: 5px;
+    padding: 10px 14px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+}
+
+.tv-cat-btn {
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.tv-cat-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, .05);
+}
+
+.tv-cat-btn.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.tv-channel-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 7px;
+}
+
+.tv-channel-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.tv-channel-item:hover {
+    background: rgba(255, 255, 255, .04);
+}
+
+.tv-channel-item.active {
+    background: var(--accent-subtle);
+    border-left: 3px solid var(--accent);
+}
+
+.ch-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ch-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.ch-info h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.ch-info p {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+}
+
+.ch-live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--rating-low);
+    margin-left: auto;
+    animation: pulse 1.5s infinite;
+}
+
+/* ============================================================
+   СПОРТИВНАЯ СТРАНИЦА
+   ============================================================ */
+.sport-page {
+    padding-top: calc(var(--header-height) + 18px);
+    min-height: 100vh;
+}
+
+.sport-hero {
+    padding: 44px 0 26px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(74, 122, 255, .04) 100%);
+    border-radius: var(--radius-lg);
+    margin-bottom: 28px;
+    text-align: center;
+}
+
+.sport-hero h1 {
+    margin-bottom: 8px;
+}
+
+.sport-hero p {
+    color: var(--text-secondary);
+}
+
+.sport-cats {
+    display: flex;
+    gap: 9px;
+    margin-bottom: 32px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.sport-cat-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 22px;
+    border-radius: var(--radius-full);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.sport-cat-btn:hover {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+.sport-cat-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.sport-events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 18px;
+}
+
+.sport-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    transition: all var(--transition);
+}
+
+.sport-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.sport-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.sport-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.sport-icon.football {
+    background: rgba(61, 214, 124, .1);
+    color: var(--rating-high);
+}
+
+.sport-icon.basketball {
+    background: rgba(245, 197, 24, .1);
+    color: var(--rating-mid);
+}
+
+.sport-icon.hockey {
+    background: rgba(74, 122, 255, .1);
+    color: var(--accent);
+}
+
+.sport-icon.boxing {
+    background: rgba(224, 80, 80, .1);
+    color: var(--rating-low);
+}
+
+.sport-icon.tennis {
+    background: rgba(171, 71, 188, .1);
+    color: #AB47BC;
+}
+
+.sport-icon.mma {
+    background: rgba(255, 152, 0, .1);
+    color: #FF9800;
+}
+
+.sport-live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border-radius: var(--radius-full);
+    background: var(--accent-subtle);
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.sport-live::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.5s infinite;
+}
+
+.sport-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+
+.sport-meta {
+    display: flex;
+    gap: 11px;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+}
+
+.sport-score {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 14px;
+}
+
+.sport-watch-btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: var(--radius-md);
+    background: var(--accent-subtle);
+    border: 1px solid var(--accent-border);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all var(--transition);
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.sport-watch-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+/* ============================================================
+   ПОДПИСКИ
+   ============================================================ */
+.subs-page {
+    padding-top: calc(var(--header-height) + 28px);
+    min-height: 100vh;
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 22px;
+    margin-top: 28px;
+}
+
+.plan-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    text-align: center;
+    transition: all var(--transition);
+    position: relative;
+}
+
+.plan-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.plan-card.popular {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.plan-card.popular::before {
+    content: 'Популярный';
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 14px;
+    background: var(--accent);
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.plan-card h3 {
+    font-size: 1.15rem;
+    margin-bottom: 7px;
+}
+
+.plan-price {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 4px;
+    letter-spacing: -1px;
+}
+
+.plan-period {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-bottom: 22px;
+}
+
+.plan-features {
+    text-align: left;
+    margin-bottom: 22px;
+}
+
+.plan-features li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 0;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+.plan-features li::before {
+    content: '✓';
+    color: var(--rating-high);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   ПРОФИЛЬ
+   ============================================================ */
+.profile-page {
+    padding-top: calc(var(--header-height) + 28px);
+    min-height: 100vh;
+}
+
+.profile-header-block {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+}
+
+.profile-avatar-big {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    border: 2px solid var(--border-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.9rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.profile-name {
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+}
+
+.profile-email {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.profile-tabs {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-tab {
+    padding: 13px 18px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.profile-tab:hover {
+    color: var(--text-primary);
+}
+
+.profile-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* ============================================================
+   АДАПТИВ
+   ============================================================ */
+@media (max-width: 1024px) {
+    .tv-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .tv-channels-panel {
+        max-height: 380px;
+    }
+
+    .movie-detail {
+        grid-template-columns: 210px 1fr;
+        gap: 26px;
+    }
+}
+
+@media (max-width: 768px) {
+    .movie-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .movie-poster-wrap {
+        position: static;
+        max-width: 190px;
+        margin: 0 auto;
+    }
+
+    .sport-events-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .plans-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Backwards compatibility: support templates using .pricing-grid/.pricing-card */
+.pricing-grid {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.pricing-card {
+    min-width: 260px;
+    max-width: 320px;
+    flex: 0 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-align: center;
+    transition: all var(--transition);
+}
+
+.pricing-card.featured {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-md);
+}
+
+/* Compact mini-card for quick selection */
+.pricing-mini {
+    min-width: 160px;
+    max-width: 180px;
+    flex: 0 0 auto;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.pricing-mini .mini-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.pricing-mini .mini-price {
+    font-weight: 800;
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.pricing-mini .mini-cta {
+    font-size: 0.82rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .pricing-grid {
+        gap: 14px;
+    }
+
+    .pricing-card {
+        min-width: 220px;
+    }
+
+    .pricing-mini {
+        display: none;
+    }
+}

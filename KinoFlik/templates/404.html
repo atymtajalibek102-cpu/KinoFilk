@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}404 — KinoFlik{% endblock %}
+{% block extra_css %}
+<style>
+    .err-wrap {
+        min-height: calc(100vh - 64px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .err-particles {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .err-particle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: rgba(192,40,40,.4);
+        animation: float-up linear infinite;
+    }
+
+    @keyframes float-up {
+        0% {
+            transform: translateY(100vh) scale(0);
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 1;
+        }
+
+        90% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(-20px) scale(1.5);
+            opacity: 0;
+        }
+    }
+
+    .err-glow {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle, rgba(192,40,40,.06) 0%, transparent 70%);
+        animation: pulse-glow 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+
+        0%,
+        100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: .6;
+        }
+
+        50% {
+            transform: translate(-50%, -50%) scale(1.2);
+            opacity: 1;
+        }
+    }
+
+    .err-box {
+        max-width: 540px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .err-code {
+        font-family: 'Unbounded', sans-serif;
+        font-size: clamp(80px, 18vw, 140px);
+        font-weight: 900;
+        line-height: 1;
+        background: linear-gradient(135deg, rgba(192,40,40,.6) 0%, rgba(192,40,40,.15) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+        display: inline-block;
+        animation: glitch 5s ease-in-out infinite;
+    }
+
+    @keyframes glitch {
+
+        0%,
+        90%,
+        100% {
+            text-shadow: none;
+        }
+
+        92% {
+            text-shadow: -3px 0 #ff0000, 3px 0 #0000ff;
+        }
+
+        94% {
+            text-shadow: 3px 0 #ff0000, -3px 0 #0000ff;
+        }
+
+        96% {
+            text-shadow: -3px 0 #ff0000, 3px 0 #0000ff;
+        }
+    }
+
+    .err-film {
+        font-size: 3.5rem;
+        display: block;
+        margin: -10px 0 16px;
+        animation: spin-reel 10s linear infinite;
+    }
+
+    @keyframes spin-reel {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .err-title {
+        font-family: 'Unbounded', sans-serif;
+        font-size: clamp(18px, 4vw, 26px);
+        font-weight: 900;
+        color: #F2F2F5;
+        margin-bottom: 14px;
+    }
+
+    .err-sub {
+        font-size: 15px;
+        color: #9999AA;
+        margin-bottom: 36px;
+        line-height: 1.7;
+        max-width: 380px;
+        margin-inline: auto;
+    }
+
+    .err-btns {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .err-btn {
+        padding: 13px 28px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        text-decoration: none;
+        transition: all .3s cubic-bezier(.34, 1.56, .64, 1);
+        border: none;
+    }
+
+    .err-btn.primary {
+        background: linear-gradient(135deg, #b02020, #b30000);
+        color: #fff;
+        box-shadow: 0 8px 28px rgba(192,40,40,.35);
+    }
+
+    .err-btn.primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 40px rgba(192,40,40,.55);
+    }
+
+    .err-btn.secondary {
+        background: rgba(255, 255, 255, .07);
+        border: 1px solid rgba(255, 255, 255, .12);
+        color: #9999AA;
+    }
+
+    .err-btn.secondary:hover {
+        color: #F2F2F5;
+        border-color: rgba(255, 255, 255, .22);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="err-wrap">
+    <div class="err-particles" id="errParticles"></div>
+    <div class="err-glow"></div>
+    <div class="err-box">
+        <div class="err-code">404</div>
+        <span class="err-film">🎬</span>
+        <h1 class="err-title" data-i18n="err404_title">Страница не найдена</h1>
+        <p class="err-sub" data-i18n="err404_sub">Возможно, страница была удалена, или вы перешли по неправильной
+            ссылке. Вернитесь на главную и продолжайте смотреть кино!</p>
+        <div class="err-btns">
+            <a href="/" class="err-btn primary"><i class="fas fa-home"></i> <span data-i18n="home">На главную</span></a>
+            <a href="/movie" class="err-btn secondary"><i class="fas fa-film"></i> <span
+                    data-i18n="movies">Фильмы</span></a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Генерация частиц
+    const container = document.getElementById('errParticles');
+    if (container) {
+        for (let i = 0; i < 22; i++) {
+            const p = document.createElement('div');
+            p.className = 'err-particle';
+            p.style.cssText = `left:${Math.random() * 100}%;width:${2 + Math.random() * 4}px;height:${2 + Math.random() * 4}px;animation-duration:${6 + Math.random() * 8}s;animation-delay:${Math.random() * 8}s;opacity:${0.3 + Math.random() * 0.5};background:rgba(128,0,0,${0.3 + Math.random() * 0.4})`;
+            container.appendChild(p);
+        }
+    }
+
+    if (window.I18N) {
+        const extra = {
+            ru: { err404_title: 'Страница не найдена', err404_sub: 'Возможно, страница была удалена или вы перешли по неправильной ссылке' },
+            en: { err404_title: 'Page not found', err404_sub: 'The page may have been deleted or you followed a broken link' },
+            kz: { err404_title: 'Бет табылмады', err404_sub: 'Бет жойылуы мүмкін немесе сіз қате сілтемеге өттіңіз' },
+        };
+        ['ru', 'en', 'kz'].forEach(l => { if (window.I18N[l]) Object.assign(window.I18N[l], extra[l]); });
+    }
+</script>
+{% endblock %}

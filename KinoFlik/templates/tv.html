@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ТВ онлайн — KinoFlik</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/tv.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        /* Переопределяем page-content для ТВ — без внутренних отступов */
+        .page-content {
+            padding: 0;
+            overflow: auto;
+        }
+
+        /* EPG секция — ниже блока tv-page */
+        #kf-epg-section {
+            margin: 0;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <a href="/" class="logo-link"><h1 class="logo">Kino<span>Flik</span></h1></a>
+            </a>
+        </div>
+        <div class="top-bar-right">
+            <div class="profile-icon">
+      {% if session.get('user_id') %}
+      <a href="/profile" style="display:block;width:100%;height:100%;border-radius:50%;">
+        <img id="navAvatarImg" src="{{ session.get('avatar_url') or 'https://i.pravatar.cc/150?u='~session.get('user_id') }}"
+             alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">
+      </a>
+      {% else %}
+      <i class="fas fa-user-circle" style="font-size:28px;color:#555"></i>
+      {% endif %}
+      <div class="profile-menu">
+        {% if session.get('user_id') %}
+        <div class="pp-header">
+          <img id="ppHeaderImg" src="{{ session.get('avatar_url') or 'https://i.pravatar.cc/150?u='~session.get('user_id') }}"
+               alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
+          <div class="pp-user-info">
+            <div class="pp-name">{{ session.get('user_name') or 'Пользователь' }}</div>
+            <div class="pp-uid" style="font-size:11px;color:rgba(255,255,255,0.35)">ID: {{ current_user_id }}</div>
+            {% if is_admin %}<div class="pp-role"><i class="fas fa-shield-alt"></i> Администратор</div>{% endif %}
+          </div>
+        </div>
+        <div class="pp-menu">
+          <a href="/profile"           class="pp-item"><i class="fas fa-user"></i> Мой профиль</a>
+          <a href="/subscriptions"     class="pp-item premium"><i class="fas fa-crown"></i> Подписки</a>
+          <a href="/profile#history"   class="pp-item"><i class="fas fa-history"></i> История</a>
+          <a href="/profile#favorites" class="pp-item"><i class="fas fa-heart"></i> Избранное</a>
+          {% if is_admin %}<div class="pp-divider"></div><a href="/admin" class="pp-item"><i class="fas fa-shield-alt"></i> Админ-панель</a>{% endif %}
+          <div class="pp-divider"></div>
+          <a href="/logout" class="pp-item danger"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+        </div>
+        {% else %}
+        <div class="pp-menu">
+          <a href="/login"            class="pp-item"><i class="fas fa-sign-in-alt"></i> Войти</a>
+          <a href="/login?register=1" class="pp-item"><i class="fas fa-user-plus"></i> Регистрация</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+    <a href="/"        class="sidebar-link"><i class="fas fa-home"></i><span>Главная</span></a>
+    <a href="/movie"   class="sidebar-link"><i class="fas fa-film"></i><span>Фильмы</span></a>
+    <a href="/series"  class="sidebar-link"><i class="fas fa-tv"></i><span>Сериалы</span></a>
+    <a href="/tv"      class="sidebar-link active"><i class="fas fa-satellite-dish"></i><span>ТВ каналы</span></a>
+    <a href="/sport"   class="sidebar-link"><i class="fas fa-trophy"></i><span>Спорт</span></a>
+    <a href="/search"  class="sidebar-link"><i class="fas fa-search"></i><span>Поиск</span></a>
+    <a href="/ai-pick" class="sidebar-link"><i class="fas fa-magic"></i><span>AI Подбор</span></a>
+    <a href="/profile" class="sidebar-link"><i class="fas fa-user"></i><span>Профиль</span></a>
+    {% if is_admin %}
+    <a href="/admin"   class="sidebar-link" style="color:#c02828"><i class="fas fa-shield-alt"></i><span>Админ</span></a>
+    {% endif %}
+  </nav>
+    </nav>
+
+    <!-- Main content -->
+    <div class="page-content">
+        <div class="tv-wrapper">
+
+            <!-- ═══════════════ TV PAGE GRID ═══════════════ -->
+            <div class="tv-page" id="tvPage">
+
+                <!-- LEFT: player + now playing -->
+                <div class="tv-left">
+
+                    <!-- Player box -->
+                    <div class="player-box" id="playerBox">
+                        <div class="player-placeholder">
+                            <i class="fas fa-satellite-dish"></i>
+                            <h3>KinoFlik ТВ</h3>
+                            <p>Выберите канал из списка</p>
+                        </div>
+                    </div>
+
+                    <!-- Now playing bar -->
+                    <div class="now-playing" id="nowPlaying">
+                        <div class="live-dot"></div>
+                        <div class="np-info">
+                            <div class="np-name" id="npName">—</div>
+                            <div class="np-cat" id="npCat">—</div>
+                        </div>
+                        <span class="live-pill">LIVE</span>
+                    </div>
+
+                </div><!-- /tv-left -->
+
+                <!-- RIGHT: channel panel -->
+                <div class="tv-right">
+
+                    <!-- Panel header with search -->
+                    <div class="panel-head">
+                        <div class="ch-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="chSearch" placeholder="Поиск канала...">
+                        </div>
+                    </div>
+
+                    <!-- Category tabs -->
+                    <div class="cat-tabs" id="catTabs">
+                        <button class="cat-tab on" data-c="all">Все</button>
+                        <button class="cat-tab" data-c="news">Новости</button>
+                        <button class="cat-tab" data-c="sports">Спорт</button>
+                        <button class="cat-tab" data-c="movies">Кино</button>
+                        <button class="cat-tab" data-c="kids">Детские</button>
+                        <button class="cat-tab" data-c="music">Музыка</button>
+                        <button class="cat-tab" data-c="documentary">Докум.</button>
+                        <button class="cat-tab" data-c="general">Общие</button>
+                    </div>
+
+                    <!-- Channel list -->
+                    <div class="ch-list" id="chList">
+                        <div class="spinner">
+                            <i class="fas fa-spinner"></i>
+                            <span>Загрузка каналов...</span>
+                        </div>
+                    </div>
+
+                    <!-- Panel footer -->
+                    <div class="panel-foot">
+                        <span id="chCount">0 каналов</span>
+                        <span>🔴 Прямой эфир</span>
+                    </div>
+
+                </div><!-- /tv-right -->
+
+            </div><!-- /tv-page -->
+
+        </div><!-- /tv-wrapper -->
+    </div><!-- /page-content -->
+
+
+
+
+    <script>
+    /* Фикс политики автовоспроизведения браузера:
+       если video.play() заблокирован — пробуем muted, затем показываем кнопку */
+    (function () {
+        var _origPlay = HTMLVideoElement.prototype.play;
+        HTMLVideoElement.prototype.play = function () {
+            var self = this;
+            var p = _origPlay.call(self);
+            if (p && p.catch) {
+                p = p.catch(function (e) {
+                    if (e.name === 'NotAllowedError') {
+                        self.muted = true;
+                        return _origPlay.call(self).then(function () {
+                            _showUnmuteBtn(self);
+                        });
+                    }
+                });
+            }
+            return p || Promise.resolve();
+        };
+
+        function _showUnmuteBtn(video) {
+            var pb = document.getElementById('playerBox');
+            if (!pb || pb.querySelector('.kf-unmute')) return;
+            var btn = document.createElement('button');
+            btn.className = 'kf-unmute';
+            btn.innerHTML = '<i class="fas fa-volume-mute"></i> Включить звук';
+            btn.style.cssText = 'position:absolute;bottom:60px;left:50%;transform:translateX(-50%);' +
+                'background:rgba(192,40,40,0.9);color:#fff;border:none;border-radius:8px;' +
+                'padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;z-index:200;';
+            btn.onclick = function () {
+                video.muted = false;
+                btn.remove();
+            };
+            pb.style.position = 'relative';
+            pb.appendChild(btn);
+        }
+    })();
+    </script>
+    <script src="/static/js/tv.js"></script>
+    <script>
+        /* ── Бургер ── */
+        var bm = document.getElementById('burgerMenu');
+        var sb = document.getElementById('sidebar');
+        if (bm && sb) bm.addEventListener('click', function () { sb.classList.toggle('open'); });
+
+        /* ── Profile popup hover ── */
+        var pi = document.querySelector('.profile-icon');
+        var pp = document.getElementById('profilePopup');
+        if (pi && pp) {
+            pi.addEventListener('mouseenter', function () { pp.classList.add('show'); });
+            pi.addEventListener('mouseleave', function () { pp.classList.remove('show'); });
+            pp.addEventListener('mouseenter', function () { pp.classList.add('show'); });
+            pp.addEventListener('mouseleave', function () { pp.classList.remove('show'); });
+        }
+
+        /* ── Search ── */
+        var si = document.getElementById('searchInput');
+        var sr = document.getElementById('searchResults');
+        if (si && sr) {
+            var t;
+            si.addEventListener('input', function () {
+                clearTimeout(t);
+                var q = si.value.trim();
+                if (!q) { sr.classList.remove('show'); return; }
+                t = setTimeout(function () {
+                    fetch('/ajax/search?q=' + encodeURIComponent(q))
+                        .then(function (r) { return r.json(); })
+                        .then(function (movies) {
+                            if (!movies.length) { sr.innerHTML = '<div style="padding:16px;color:#666;font-size:13px;text-align:center">Ничего не найдено</div>'; }
+                            else { sr.innerHTML = movies.map(function (m) { return '<a href="/movie/' + m.id + '" class="search-result-item"><div class="sr-poster"><i class="fas fa-film"></i></div><div><div class="sr-title">' + m.title + '</div><div class="sr-meta">' + (m.year || '') + '</div></div></a>'; }).join(''); }
+                            sr.classList.add('show');
+                        }).catch(function () { });
+                }, 300);
+            });
+            document.addEventListener('click', function (e) { if (!si.closest('.search-wrapper').contains(e.target)) sr.classList.remove('show'); });
+        }
+
+        /* ── Toast helper (используется в tv.js) ── */
+        function showToast(msg, type) {
+            var t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.className = 'toast show ' + (type || 'success');
+            setTimeout(function () { t.classList.remove('show'); }, 3000);
+        }
+
+    </script>
+
+</body>
+
+</html>

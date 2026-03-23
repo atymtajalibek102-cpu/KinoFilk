@@ -1,0 +1,551 @@
+/* ============================================================
+   KINOFLIK — TV PAGE STYLES
+   Restores/modernizes TV layout and channel panel
+   Uses design tokens from css/style.css (variables)
+   ============================================================ */
+
+:root {
+  --tv-gap: 18px;
+}
+
+/* Container */
+.tv-wrapper {
+  padding: 18px;
+  padding-top: calc(var(--header-height) + 18px);
+  box-sizing: border-box;
+}
+
+.tv-page {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--tv-gap);
+  align-items: start;
+}
+
+/* Left: Player */
+.player-box {
+  background: #0e0e0e;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  min-height: 52vh;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+}
+
+.player-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 52vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  gap: 8px;
+}
+
+.player-placeholder i {
+  font-size: 2rem;
+  color: var(--accent);
+}
+
+.player-placeholder h3 {
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Player controls */
+.kf-player-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .0), rgba(17,22,20,.62) 40%, rgba(17,22,20,.82));
+  color: #fff;
+  transition: opacity .3s ease;
+  opacity: 1;
+}
+
+.kf-player-btn {
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid var(--border-hover);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  height: 30px;
+  padding: 0 10px;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.kf-player-btn:hover {
+  background: rgba(255, 255, 255, .14);
+  border-color: rgba(255, 255, 255, .22);
+}
+
+.kf-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  width: 120px;
+  border-radius: 999px;
+  background: var(--border-hover);
+  outline: none;
+  cursor: pointer;
+}
+
+.kf-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: var(--shadow-accent);
+}
+
+.kf-volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: var(--shadow-accent);
+}
+
+.kf-channel-label {
+  margin: 0 6px;
+  font-weight: 700;
+  font-size: .95rem;
+}
+
+/* Live bar */
+.kf-live-bar {
+  position: relative;
+  flex: 1;
+  height: 6px;
+  background: rgba(192,40,40,.25);
+  border-radius: 999px;
+  overflow: hidden;
+  min-width: 120px;
+}
+
+.kf-live-bar-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .0) 0%, rgba(255, 255, 255, .22) 50%, rgba(255, 255, 255, .0) 100%);
+  animation: kfShine 2.2s linear infinite;
+}
+
+@keyframes kfShine {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.kf-live-badge {
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  background: rgba(192,40,40,.9);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .8px;
+}
+
+/* Now playing bar */
+.now-playing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-top: 10px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: all var(--transition);
+}
+
+.now-playing.show {
+  opacity: 1;
+  transform: none;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.6s ease infinite;
+}
+
+.np-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.np-name {
+  font-weight: 700;
+  font-size: .95rem;
+}
+
+.np-cat {
+  color: var(--text-muted);
+  font-size: .78rem;
+}
+
+.tv-right {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  max-height: 500px;
+}
+
+.panel-head {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.panel-head h3 {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  order: 2;
+}
+
+.ch-search {
+  position: relative;
+  flex: 1 1 100%;
+  order: 1;
+}
+
+.ch-search i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.ch-search input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: .9rem;
+}
+
+.ch-search input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.cat-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.cat-tab {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.cat-tab:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.cat-tab.on {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.ch-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  min-height: 0;
+}
+
+.spinner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  padding: 16px;
+  color: var(--text-secondary);
+}
+
+.spinner i {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ch-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+  border-left: 3px solid transparent;
+}
+
+.ch-item:hover {
+  background: rgba(255, 255, 255, .04);
+  transform: translateX(2px);
+}
+
+.ch-item.on {
+  background: var(--accent-subtle);
+  border-left-color: var(--accent);
+}
+
+.ch-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: .5px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-hover);
+}
+
+.ch-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.ch-name {
+  font-weight: 700;
+  font-size: .95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ch-sub {
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+
+.live-pill {
+  display: none;
+}
+
+.panel-foot {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: .85rem;
+}
+
+/* EPG (optional section) */
+.kf-epg-section {
+  margin-top: 18px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.kf-epg-title {
+  font-weight: 800;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kf-epg-progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.kf-epg-progress-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.kf-epg-next-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.kf-epg-time {
+  width: 48px;
+  color: var(--text-muted);
+  font-size: .85rem;
+}
+
+.kf-epg-show {
+  color: var(--text-secondary);
+  font-size: .9rem;
+}
+
+/* Back to top */
+.back-to-top {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  box-shadow: var(--shadow-accent);
+  transform: translateY(12px);
+  opacity: 0;
+  transition: all var(--transition);
+  z-index: 100;
+}
+
+.back-to-top.show {
+  transform: none;
+  opacity: 1;
+}
+
+.back-to-top:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+/* Theater mode (T) */
+.tv-page.theater {
+  grid-template-columns: 1fr;
+}
+
+.tv-page.theater .tv-right {
+  display: none;
+}
+
+/* Adaptive */
+@media (max-width: 1100px) {
+  .tv-page {
+    grid-template-columns: 1fr;
+  }
+
+  .tv-right {
+    order: 2;
+  }
+}
+/* ═══════════════════════════════════════════════════════
+   ДОПОЛНЕНИЯ: стрелка сайдбара + растяжка списка
+═══════════════════════════════════════════════════════ */
+
+/* Список каналов — до низа экрана */
+.tv-right {
+  height: calc(100vh - var(--header-height, 60px) - 36px);
+  max-height: none;  /* снимаем ограничение 500px */
+}
+
+/* ── Кнопка-стрелка скрытия сайдбара ─────────────────── */
+#sidebarToggle {
+  position: fixed;
+  left: var(--sidebar-width, 240px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  z-index: 200;
+  width: 20px;
+  height: 44px;
+  background: var(--bg-secondary, #161616);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 0 6px 6px 0;
+  color: rgba(255,255,255,.25);   /* почти невидимая */
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .2s, background .2s, left .3s;
+  outline: none;
+  padding: 0;
+}
+#sidebarToggle:hover {
+  color: rgba(255,255,255,.7);
+  background: rgba(90,150,120,.25);
+  border-color: rgba(90,150,120,.4);
+}
+
+/* Когда сайдбар скрыт */
+body.sidebar-hidden .sidebar {
+  transform: translateX(-100%);
+}
+body.sidebar-hidden .page-content {
+  margin-left: 0 !important;
+}
+body.sidebar-hidden #sidebarToggle {
+  left: 0;
+  transform: translateY(-50%) translateX(0);
+  border-radius: 0 6px 6px 0;
+}
+
+/* EPG badge */
+.kf-epg-now-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(192,40,40,.8);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}

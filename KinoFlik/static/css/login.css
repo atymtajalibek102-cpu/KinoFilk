@@ -1,0 +1,11 @@
+/* KINOFLIK - LOGIN.CSS - Переменные в style.css, базовые формы в clean.css */
+.forgot-link { display:block; text-align:right; font-size:.82rem; color:var(--text-secondary); margin-bottom:14px; transition:color var(--transition); }
+.forgot-link:hover { color:var(--accent); }
+.social-btns { display:flex; justify-content:center; gap:10px; }
+.social-btn { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.05); border:1px solid var(--border-hover); display:flex; align-items:center; justify-content:center; color:var(--text-primary); font-size:1.1rem; transition:all var(--transition); text-decoration:none; }
+.social-btn:hover { background:var(--accent); border-color:var(--accent); transform:translateY(-3px); }
+.remember-row { display:flex; justify-content:space-between; align-items:center; margin:14px 0; }
+.custom-check { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.85rem; color:var(--text-secondary); }
+.custom-check input { display:none; }
+.checkmark { width:17px; height:17px; border:1px solid var(--border-hover); border-radius:4px; background:var(--bg-input); position:relative; transition:all var(--transition); flex-shrink:0; }
+/* checked state requires JS class toggle */

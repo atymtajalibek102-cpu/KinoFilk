@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KinoFlik V2 | Premium Media Hub</title>
+    <!-- Подключаем шрифт как у Apple (похожий на San Francisco) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800;900&display=swap');
+
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --accent: #800000;
+            --accent-hover: #b30000;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-blur: blur(20px);
+            --transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* Navbar (Glassmorphism) */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 24px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            transition: var(--transition);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            background: var(--glass-bg);
+            padding: 6px 10px;
+            border-radius: 100px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+
+        .nav-links button {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links button:hover {
+            color: #fff;
+        }
+
+        .nav-links button.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-links button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity .2s;
+        }
+
+        .icon-btn:hover {
+            opacity: 1;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .avatar:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: flex-end;
+            padding: 0 60px 100px;
+            background-size: cover;
+            background-position: center 20%;
+            transition: background-image 0.8s ease-in-out;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(0deg, #000 0%, transparent 60%),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.85) 0%, transparent 60%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 680px;
+            opacity: 0;
+            transform: translateY(40px);
+            animation: slideUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            background: rgba(128, 0, 0, 0.15);
+            border: 1px solid var(--accent);
+            color: var(--text-color);
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: 84px;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 24px;
+            letter-spacing: -3px;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 15px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 28px;
+        }
+
+        .hero-meta span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-highlight {
+            color: #fff;
+            background: var(--glass-bg);
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-desc {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            font-weight: 400;
+            margin-bottom: 48px;
+            max-width: 580px;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            border-radius: 100px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: none;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 10px 40px rgba(128, 0, 0, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 50px rgba(128, 0, 0, 0.6);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: #fff;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* Seamless Player Overlay */
+        .player-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .close-player {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
+        }
+
+        .close-player:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 100%;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 45%;
+        }
+
+        /* Smooth Content Fade */
+        .fade {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .fade-out {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">KINO<span>FLIK</span></div>
+        <div class="nav-links">
+            <button class="active" onclick="switchCategory('movies', this)">Фильмы</button>
+            <button onclick="switchCategory('live', this)">Live-ТВ</button>
+            <button onclick="switchCategory('radio', this)">Радио</button>
+            <button onclick="switchCategory('podcasts', this)">Подкасты</button>
+        </div>
+        <div class="user-menu">
+            <button class="icon-btn">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                </svg>
+            </button>
+            <div class="avatar"></div>
+        </div>
+    </nav>
+
+    <div class="hero" id="heroSec"
+        style="background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2500&auto=format&fit=crop');">
+        <div class="hero-content fade" id="heroContent">
+            <div class="hero-tag" id="heroTag">Премьера платформы</div>
+            <h1 class="hero-title" id="heroTitle">Интерстеллар</h1>
+            <div class="hero-meta" id="heroMeta">
+                <span class="meta-highlight">★ 9.8</span>
+                <span>2014</span>
+                <span>Научная фантастика</span>
+                <span>2ч 49м</span>
+            </div>
+            <p class="hero-desc" id="heroDesc">Когда засуха приводит человечество к продовольственному кризису,
+                коллектив исследователей и учёных отправляется сквозь кротовую нору, чтобы найти планету с пригодными
+                для человечества условиями.</p>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="openPlayer()">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg> Смотреть
+                </button>
+                <button class="btn btn-secondary">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg> Избранное
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Бесшовный Плеер поверх всего -->
+    <div class="player-overlay" id="player">
+        <button class="close-player" onclick="closePlayer()">✕</button>
+        <h2 style="color:#555; letter-spacing: 2px;">CINEMATIC PLAYER</h2>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+
+    <script>
+        // База метаданных для мгновенного (SPA) переключения без перезагрузки
+        const db = {
+            movies: {
+                bg: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2500&auto=format&fit=crop',
+                tag: 'Премьера платформы', title: 'Интерстеллар',
+                desc: 'Когда засуха приводит человечество к продовольственному кризису, коллектив исследователей и учёных отправляется сквозь кротовую нору, чтобы найти планету с пригодными для человечества условиями.',
+                meta: '<span class="meta-highlight">★ 9.8</span><span>2014</span><span>Научная фантастика</span><span>2ч 49м</span>',
+                action: '<svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Смотреть'
+            },
+            live: {
+                bg: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2500&auto=format&fit=crop',
+                tag: 'Прямой эфир', title: 'Discovery: Открытия',
+                desc: 'Эксклюзивная трансляция о тайнах образования черных дыр и путешествиях по вселенной в прямом эфире 24/7.',
+                meta: '<span class="meta-highlight" style="background:var(--accent);border:none">LIVE</span><span>Документальный</span><span>1080p 60fps</span>',
+                action: '<svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Эфир'
+            },
+            radio: {
+                bg: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=2500&auto=format&fit=crop',
+                tag: 'Умная музыка', title: 'Classic Symphony HD',
+                desc: 'Погрузитесь в концентрацию и покой. Строго отобранные произведения Людовико Эйнауди, Ханса Циммера и классиков 18-го века в Lossless качестве.',
+                meta: '<span class="meta-highlight">Lossless Audio</span><span>Инструментал</span><span>Без рекламы</span>',
+                action: '<svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Слушать'
+            },
+            podcasts: {
+                bg: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?q=80&w=2500&auto=format&fit=crop',
+                tag: 'Новый выпуск', title: 'AI: Революция Разума',
+                desc: 'Интервью с ведущими AI-инженерами о том, как искусственный интеллект меняет архитектуру Кремниевой долины.',
+                meta: '<span class="meta-highlight">★ 9.9</span><span>IT и Технологии</span><span>1ч 45м</span>',
+                action: '<svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play Podcast'
+            }
+        };
+
+        function switchCategory(key, btnRef) {
+            // Переключаем активную кнопку
+            document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+            btnRef.classList.add('active');
+
+            const content = document.getElementById('heroContent');
+            const data = db[key];
+
+            // Анимация исчезновения
+            content.classList.add('fade-out');
+
+            setTimeout(() => {
+                // Обновляем данные
+                document.getElementById('heroSec').style.backgroundImage = `url('${data.bg}')`;
+                document.getElementById('heroTag').innerText = data.tag;
+                document.getElementById('heroTitle').innerText = data.title;
+                document.getElementById('heroDesc').innerText = data.desc;
+                document.getElementById('heroMeta').innerHTML = data.meta;
+                document.querySelector('.btn-primary').innerHTML = data.action;
+
+                // Анимация появления
+                content.classList.remove('fade-out');
+            }, 300); // 300ms для плавности
+        }
+
+        function openPlayer() {
+            document.getElementById('player').classList.add('active');
+        }
+
+        function closePlayer() {
+            document.getElementById('player').classList.remove('active');
+        }
+    </script>
+</body>
+
+</html>

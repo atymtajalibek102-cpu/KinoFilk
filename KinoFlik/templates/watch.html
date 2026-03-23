@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — KinoFlik{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════
+   WATCH PAGE — HTML5 ПЛЕЕР
+════════════════════════════════════════ */
+.wp { max-width: 1300px; margin: 0 auto; padding: 20px 24px 80px; }
+
+.wp-title {
+    font-size: 22px; font-weight: 800; color: #fff;
+    margin-bottom: 16px; line-height: 1.25;
+}
+.wp-title span { color: rgba(255,255,255,.4); font-weight: 500; font-size: 16px; margin-left: 10px; }
+
+/* ── Плеер ── */
+.player-wrapper {
+    position: relative; width: 100%;
+    aspect-ratio: 16/9; border-radius: 14px;
+    overflow: hidden; background: #000;
+    box-shadow: 0 24px 64px rgba(0,0,0,.7);
+    margin-bottom: 24px;
+}
+
+video#main-player {
+    width: 100%; height: 100%;
+    outline: none; background: #000;
+}
+
+.no-video {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: #0a0a0a; gap: 8px;
+    color: rgba(255,255,255,.4);
+    font-size: 16px; font-weight: 600;
+}
+.no-video i { font-size: 48px; opacity: .3; margin-bottom: 8px; }
+
+/* controls убраны — используем iframe плеер */
+
+.progress-bar {
+    width: 100%; height: 3px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px; cursor: pointer;
+    position: relative; transition: height 0.2s;
+}
+.progress-bar:hover { height: 5px; }
+.progress-fill {
+    height: 100%; background: #c02828;
+    border-radius: 2px; width: 0%;
+    pointer-events: none; position: relative;
+}
+.progress-fill::after {
+    content: ''; position: absolute; right: -5px; top: 50%;
+    transform: translateY(-50%); width: 10px; height: 10px;
+    background: #fff; border-radius: 50%; opacity: 0;
+    transition: opacity 0.2s;
+}
+.progress-bar:hover .progress-fill::after { opacity: 1; }
+
+.controls-row {
+    display: flex; align-items: center; gap: 12px;
+}
+.control-btn {
+    background: none; border: none; color: #fff;
+    font-size: 15px; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.control-btn:hover { background: rgba(255,255,255,0.15); }
+#timeDisplay { font-size: 12px; font-weight: 500; color: rgba(255,255,255,.7); margin-right: auto; }
+
+/* ── Серии ── */
+.wp-series {
+    margin-top: 24px;
+    background: #0e0e0e; border: 1px solid #1a1a1a;
+    border-radius: 12px; padding: 20px;
+}
+.wp-series__title {
+    font-size: 16px; font-weight: 700; color: #fff;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.wp-seasons {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 20px; padding-bottom: 16px;
+    border-bottom: 1px solid #1a1a1a;
+}
+.wp-season-btn {
+    padding: 6px 16px; border-radius: 20px;
+    background: rgba(255,255,255,.06); border: 1px solid #222;
+    color: rgba(255,255,255,.5); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .18s;
+}
+.wp-season-btn:hover  { color: #fff; border-color: #333; }
+.wp-season-btn.active { background: #c02828; border-color: #c02828; color: #fff; }
+.wp-episodes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px; max-height: 420px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #222 transparent;
+}
+.wp-ep {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,.03); border: 1px solid #1a1a1a;
+    border-radius: 8px; padding: 10px 12px;
+    cursor: pointer; transition: all .18s;
+}
+.wp-ep:hover  { border-color: rgba(192,40,40,.4); background: rgba(192,40,40,.07); }
+.wp-ep.active { border-color: #c02828; background: rgba(192,40,40,.14); }
+.wp-ep__num {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: rgba(255,255,255,.08); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: rgba(255,255,255,.6);
+    flex-shrink: 0;
+}
+.wp-ep.active .wp-ep__num { background: #c02828; color: #fff; }
+.wp-ep__info { flex: 1; min-width: 0; }
+.wp-ep__title {
+    font-size: 13px; font-weight: 600; color: #ddd;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wp-ep__air { font-size: 11px; color: rgba(255,255,255,.3); margin-top: 2px; }
+.wp-ep__play { color: rgba(255,255,255,.2); font-size: 12px; flex-shrink: 0; }
+.wp-ep:hover .wp-ep__play, .wp-ep.active .wp-ep__play { color: #c02828; }
+
+/* ── Похожие ── */
+.wp-similar { margin-top: 36px; }
+.wp-similar__title {
+    font-size: 11px; font-weight: 500; letter-spacing: 2px;
+    text-transform: uppercase; color: #444; margin-bottom: 16px;
+    border-left: 2px solid #c02828; padding-left: 10px;
+}
+.wp-similar-row {
+    display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px;
+    scrollbar-width: none;
+}
+.wp-similar-row::-webkit-scrollbar { display: none; }
+.wp-sim-card {
+    flex-shrink: 0; width: 140px;
+    text-decoration: none; color: #fff; display: block;
+}
+.wp-sim-card__poster {
+    width: 100%; aspect-ratio: 2/3; border-radius: 8px;
+    overflow: hidden; background: #111; position: relative;
+    border: 1px solid #161616;
+}
+.wp-sim-card__poster img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+.wp-sim-card:hover .wp-sim-card__poster { border-color: rgba(192,40,40,.5); }
+.wp-sim-card:hover .wp-sim-card__poster img { transform: scale(1.06); }
+.wp-sim-card__rate {
+    position: absolute; top: 6px; left: 6px;
+    padding: 2px 6px; border-radius: 4px;
+    font-size: 11px; font-weight: 700; color: #fff;
+}
+.wp-sim-card__name {
+    font-size: 12px; font-weight: 600; color: #ccc;
+    margin-top: 6px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.wp-sim-card__year { font-size: 11px; color: #444; }
+
+@keyframes shimmer { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
+.wp-skeleton {
+    flex-shrink: 0; width: 140px; aspect-ratio: 2/3; border-radius: 8px;
+    background: linear-gradient(90deg, #0e0e0e 25%, #161616 50%, #0e0e0e 75%);
+    background-size: 1200px 100%; animation: shimmer 1.6s infinite linear;
+}
+
+/* Fullscreen кнопка показывается при ховере */
+.player-wrapper:hover #kfFullBtn { opacity: 1 !important; }
+#kfFullBtn:hover { background: rgba(192,40,40,0.85) !important; }
+
+/* ── Настройки плеера (сервера/языки) ── */
+.player-controls-row {
+    display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between;
+    margin-bottom: 12px;
+}
+.pc-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pc-label { font-size: 13px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.pc-btn {
+    background: #111; border: 1px solid #222; color: #999;
+    padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .2s;
+}
+.pc-btn:hover { background: #1a1a1a; color: #fff; border-color: #333; }
+.pc-btn.active { background: #c02828; color: #fff; border-color: #c02828; }
+#kfIframe { width: 100%; height: 100%; border-radius: 12px; display: block; }
+
+
+@media (max-width: 600px) {
+    .wp { padding: 12px 12px 80px; }
+    .player-wrapper { border-radius: 10px; }
+    .wp-episodes { grid-template-columns: 1fr; max-height: 320px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wp">
+
+    <div class="wp-title">
+        {{ title }}
+        {% if is_series %}<span>Сезон {{ season }}, Серия {{ episode }}</span>{% endif %}
+    </div>
+
+    <!-- ── Опции плеера (Источники и Языки) ── -->
+    <div class="player-controls-row">
+        <div class="pc-group">
+            <span class="pc-label"><i class="fas fa-language"></i> Озвучка:</span>
+            <button class="pc-btn active" id="langRu" onclick="setLang('ru', this)">🇷🇺 Русский</button>
+            <button class="pc-btn"        id="langKk" onclick="setLang('kk', this)">🇰🇿 Қазақша</button>
+            <button class="pc-btn"        id="langEn" onclick="setLang('en', this)">🇬🇧 English</button>
+        </div>
+        <div class="pc-group">
+            <span class="pc-label"><i class="fas fa-server"></i> Сервер:</span>
+            <button class="pc-btn active" id="srcBtn0" onclick="setPlayer('vidsrc_cc',  this)">1</button>
+            <button class="pc-btn"        id="srcBtn1" onclick="setPlayer('embed2',     this)">2</button>
+            <button class="pc-btn"        id="srcBtn2" onclick="setPlayer('vidsrc_to',  this)">3</button>
+            <button class="pc-btn"        id="srcBtn3" onclick="setPlayer('multiembed', this)">4</button>
+        </div>
+    </div>
+
+    <!-- ── Плеер ── -->
+    <div class="player-wrapper" id="playerWrapper">
+        <iframe id="kfIframe" src=""
+                frameborder="0" allowfullscreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture">
+        </iframe>
+        <!-- Кнопка fullscreen поверх плеера -->
+        <button id="kfFullBtn" onclick="toggleFullscreen()"
+                title="Полный экран (F)"
+                style="position:absolute;bottom:10px;right:10px;z-index:10;
+                       background:rgba(0,0,0,0.6);border:none;color:#fff;
+                       width:36px;height:36px;border-radius:8px;cursor:pointer;
+                       font-size:16px;display:flex;align-items:center;justify-content:center;
+                       transition:background .2s;opacity:0;">
+            <i class="fas fa-expand"></i>
+        </button>
+    </div>
+
+    <!-- ── Выбор серии (для сериалов) ── -->
+    {% if is_series and tmdb_id %}
+    <div class="wp-series" id="wpSeries">
+        <div class="wp-series__title">
+            <i class="fas fa-list-ul" style="color:#c02828;"></i> Выбор серии
+        </div>
+        <div class="wp-seasons" id="wpSeasons">
+            <button class="wp-season-btn active" onclick="loadSeasonUI(1, this)">Сезон 1</button>
+        </div>
+        <div class="wp-episodes" id="wpEpisodes">
+            <div style="color:rgba(255,255,255,.3);padding:20px;text-align:center;grid-column:1/-1;">
+                <i class="fas fa-spinner fa-spin"></i> Загрузка серий...
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Похожие ── -->
+    <div class="wp-similar">
+        <div class="wp-similar__title">Похожее</div>
+        <div class="wp-similar-row" id="wpSimilar">
+            {% for i in range(10) %}<div class="wp-skeleton"></div>{% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CFG = {
+    tmdb_id:  {{ tmdb_id  | default(0)   | tojson }},
+    is_series:{{ is_series| default(false)| tojson }},
+    movie_id: {{ movie_id | default(0)   | tojson }},
+    season:   {{ season   | default(1)   | tojson }},
+    episode:  {{ episode  | default(1)   | tojson }}
+};
+
+const TMDB_KEY = '15d2ea6d0dc1d476efbca3eba2b9bbfb';
+
+document.body.classList.add('watch-page');
+
+/* ══════════════════
+   IFRAME ПЛЕЕР & ВЫБОР
+══════════════════ */
+/* ══════════════════════════════════════════
+   ПЛЕЕРЫ  (все работают по TMDB ID)
+   vidsrc_cc  — основной, стабильный
+   embed2     — агрегатор
+   vidsrc_to  — резерв
+   multiembed — резерв 2
+   Примечание: русский дубляж выбирается ВНУТРИ плеера (кнопка CC/аудио)
+══════════════════════════════════════════ */
+const PLAYERS = {
+    vidsrc_cc: {
+        movie: (id,s,e) => `https://vidsrc.cc/v2/embed/movie/${id}`,
+        tv:    (id,s,e) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`,
+    },
+    embed2: {
+        movie: (id,s,e) => `https://www.2embed.cc/embed/tmdb/movie?id=${id}`,
+        tv:    (id,s,e) => `https://www.2embed.cc/embed/tmdb/tv?id=${id}&s=${s}&e=${e}`,
+    },
+    vidsrc_to: {
+        movie: (id,s,e) => `https://vidsrc.to/embed/movie/${id}`,
+        tv:    (id,s,e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`,
+    },
+    multiembed: {
+        movie: (id,s,e) => `https://multiembed.mov/?video_id=${id}&tmdb=1`,
+        tv:    (id,s,e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`,
+    },
+};
+
+/* Язык → плеер (разные серверы могут иметь разные озвучки) */
+const LANG_MAP = {
+    ru: { player: 'vidsrc_cc',  btn: 0 },
+    kk: { player: 'multiembed', btn: 3 },
+    en: { player: 'embed2',     btn: 1 },
+};
+const PLAYER_BTN = { vidsrc_cc: 0, embed2: 1, vidsrc_to: 2, multiembed: 3 };
+
+let curPlayer = 'vidsrc_cc';
+let curLang   = 'ru';
+
+function updateIframe() {
+    const iframe = document.getElementById('kfIframe');
+    if (!iframe) return;
+    const id = CFG.tmdb_id || CFG.movie_id;
+    if (!id) return;
+    const p   = PLAYERS[curPlayer] || PLAYERS.ashdi;
+    const url = CFG.is_series
+        ? p.tv(id, CFG.season, CFG.episode)
+        : p.movie(id);
+    iframe.src = 'about:blank';
+    setTimeout(() => { iframe.src = url; }, 60);
+}
+
+function _syncSrcBtns(playerKey) {
+    const idx = PLAYER_BTN[playerKey] ?? -1;
+    [0,1,2,3].forEach(i => {
+        const b = document.getElementById('srcBtn' + i);
+        if (b) b.classList.toggle('active', i === idx);
+    });
+}
+
+window.setPlayer = function(player, btnEl) {
+    curPlayer = player;
+    btnEl.closest('.pc-group').querySelectorAll('.pc-btn')
+         .forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+    updateIframe();
+};
+
+window.setLang = function(lang, btnEl) {
+    curLang = lang;
+    btnEl.closest('.pc-group').querySelectorAll('.pc-btn')
+         .forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+    const map = LANG_MAP[lang] || LANG_MAP.ru;
+    curPlayer  = map.player;
+    _syncSrcBtns(curPlayer);
+    updateIframe();
+};
+
+// Инициализация при загрузке
+updateIframe();
+
+/* ══════════════════
+   FULLSCREEN & ГОРЯЧИЕ КЛАВИШИ
+══════════════════ */
+window.toggleFullscreen = function() {
+    const wrapper = document.getElementById('playerWrapper');
+    const icon    = document.querySelector('#kfFullBtn i');
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+        if (icon) icon.className = 'fas fa-expand';
+    } else {
+        wrapper.requestFullscreen().catch(() => {});
+        if (icon) icon.className = 'fas fa-compress';
+    }
+};
+
+document.addEventListener('fullscreenchange', function() {
+    const icon = document.querySelector('#kfFullBtn i');
+    if (icon) icon.className = document.fullscreenElement ? 'fas fa-compress' : 'fas fa-expand';
+});
+
+document.addEventListener('keydown', function(e) {
+    // Не реагируем если фокус в поле ввода
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // Не реагируем если фокус внутри iframe
+    if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
+
+    switch(e.key) {
+        case 'f':
+        case 'F':
+            toggleFullscreen();
+            e.preventDefault();
+            break;
+        case 'Escape':
+            if (document.fullscreenElement) document.exitFullscreen();
+            break;
+        case '1': document.getElementById('srcBtn0')?.click(); e.preventDefault(); break;
+        case '2': document.getElementById('srcBtn1')?.click(); e.preventDefault(); break;
+        case '3': document.getElementById('srcBtn2')?.click(); e.preventDefault(); break;
+        case '4': document.getElementById('srcBtn3')?.click(); e.preventDefault(); break;
+    }
+});
+
+/* ══════════════════
+   СЕРИИ — TMDB
+══════════════════ */
+async function initSeries() {
+    if (!CFG.is_series || !CFG.tmdb_id) return;
+    try {
+        const r = await fetch(`https://api.themoviedb.org/3/tv/${CFG.tmdb_id}?api_key=${TMDB_KEY}&language=ru-RU`);
+        const d = await r.json();
+        const total = d.number_of_seasons || 1;
+        const el = document.getElementById('wpSeasons');
+        if (!el) return;
+        el.innerHTML = '';
+        for (let i = 1; i <= total; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'wp-season-btn' + (i === CFG.season ? ' active' : '');
+            btn.textContent = 'Сезон ' + i;
+            btn.onclick = (() => { const s = i; return () => loadSeasonUI(s, btn); })();
+            el.appendChild(btn);
+        }
+        loadSeasonUI(CFG.season, null);
+    } catch(e) { console.error(e); }
+}
+
+async function loadSeasonUI(sNum, btn) {
+    document.querySelectorAll('.wp-season-btn').forEach(b =>
+        b.classList.toggle('active', b.textContent === 'Сезон ' + sNum));
+    if (btn) { document.querySelectorAll('.wp-season-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+
+    const grid = document.getElementById('wpEpisodes');
+    if (!grid) return;
+    grid.innerHTML = '<div style="color:#333;padding:20px;text-align:center;grid-column:1/-1;"><i class="fas fa-spinner fa-spin"></i></div>';
+    try {
+        const r = await fetch(`https://api.themoviedb.org/3/tv/${CFG.tmdb_id}/season/${sNum}?api_key=${TMDB_KEY}&language=ru-RU`);
+        const d = await r.json();
+        const eps = d.episodes || [];
+        if (!eps.length) { grid.innerHTML = '<div style="color:#333;padding:20px;grid-column:1/-1;">Серии не найдены</div>'; return; }
+        grid.innerHTML = eps.map(ep => {
+            const active = sNum === CFG.season && ep.episode_number === CFG.episode;
+            const link = `/watch/tv/${CFG.tmdb_id}?season=${sNum}&ep=${ep.episode_number}`;
+            return `<div class="wp-ep ${active ? 'active' : ''}" onclick="window.location.href='${link}'">
+                <div class="wp-ep__num">${ep.episode_number}</div>
+                <div class="wp-ep__info">
+                    <div class="wp-ep__title">${(ep.name||'Серия '+ep.episode_number).replace(/</g,'&lt;')}</div>
+                    <div class="wp-ep__air">${ep.air_date||''}</div>
+                </div>
+                <i class="fas fa-play wp-ep__play"></i>
+            </div>`;
+        }).join('');
+        const act = grid.querySelector('.wp-ep.active');
+        if (act) act.scrollIntoView({ block: 'nearest' });
+    } catch(e) { console.error(e); }
+}
+
+/* ══════════════════
+   ПОХОЖИЕ
+══════════════════ */
+async function loadSimilar() {
+    const grid = document.getElementById('wpSimilar');
+    if (!grid || !CFG.tmdb_id) { if(grid) grid.innerHTML=''; return; }
+    const type = CFG.is_series ? 'tv' : 'movie';
+    try {
+        let items = [];
+        const r = await fetch(`https://api.themoviedb.org/3/${type}/${CFG.tmdb_id}/recommendations?api_key=${TMDB_KEY}&language=ru-RU&page=1`);
+        const d = await r.json();
+        items = (d.results || []).filter(m => m.poster_path && m.vote_average >= 5).slice(0, 20);
+        if (!items.length) {
+            const r2 = await fetch(`https://api.themoviedb.org/3/${type}/${CFG.tmdb_id}/similar?api_key=${TMDB_KEY}&language=ru-RU&page=1`);
+            const d2 = await r2.json();
+            items = (d2.results || []).filter(m => m.poster_path).slice(0, 20);
+        }
+        if (!items.length) { grid.innerHTML = ''; return; }
+        grid.innerHTML = items.map(m => {
+            const title = (m.name || m.title || '').replace(/</g, '&lt;');
+            const year  = (m.first_air_date || m.release_date || '').split('-')[0];
+            const rat   = m.vote_average ? m.vote_average.toFixed(1) : '';
+            const poster = m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : '';
+            const isTV  = !!m.first_air_date;
+            const href  = isTV ? `/series/tmdb/${m.id}` : `/movie/tmdb/${m.id}`;
+            const rc    = parseFloat(rat)>=7 ? 'background:rgba(34,139,34,.9)' : parseFloat(rat)>=5 ? 'background:rgba(190,150,0,.9)' : 'background:#333';
+            return `<a href="${href}" class="wp-sim-card">
+                <div class="wp-sim-card__poster">
+                    <img src="${poster}" loading="lazy" onerror="this.closest('.wp-sim-card').remove()">
+                    ${rat ? `<div class="wp-sim-card__rate" style="${rc}">${rat}</div>` : ''}
+                </div>
+                <div class="wp-sim-card__name">${title}</div>
+                <div class="wp-sim-card__year">${year}</div>
+            </a>`;
+        }).join('');
+    } catch(e) { console.error(e); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSimilar();
+    if (CFG.is_series && CFG.tmdb_id) initSeries();
+});
+</script>
+{% endblock %}

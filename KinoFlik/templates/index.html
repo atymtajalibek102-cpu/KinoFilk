@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KinoFlik — онлайн-кинотеатр без рекламы. Тысячи фильмов и сериалов в высоком качестве. Смотрите на любых устройствах.">
+    <meta name="theme-color" content="#000000">
+    <meta property="og:title" content="KinoFlik — кино без рекламы">
+    <meta property="og:description" content="Смотрите любимые фильмы и сериалы в любое время. Без рекламы, без ограничений.">
+    <meta property="og:image" content="{{ url_for('static', filename='img/og-image.png') }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>KinoFlik — главная страница</title>
+
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Main styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* =============================================
+           NOIR — Minimal Dark Cinema
+           Полностью переработанная версия
+           #000 · #c02828 · Syne + DM Sans
+           ============================================= */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:          #000000;
+            --surface:     #080808;
+            --card:        #0e0e0e;
+            --border:      #161616;
+            --accent:      #c02828;
+            --accent-dim:  rgba(192,40,40,.12);
+            --text:        #f0f0f0;
+            --muted:       #444444;
+            --muted-light: #666666;
+            --sb-w:        66px;
+            --sb-open:     230px;
+            --ease:        0.28s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Syne', sans-serif; }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ========== LAYOUT ========== */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== SIDEBAR (выдвижная) ========== */
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: var(--sb-w);
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: width var(--ease);
+            z-index: 200;
+        }
+        .sidebar:hover { width: var(--sb-open); }
+
+        .sb-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 17px;
+            height: 60px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .sb-gem { width: 28px; height: 28px; flex-shrink: 0; }
+        .sb-brand {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: var(--text);
+            text-transform: uppercase;
+            opacity: 0;
+            transition: opacity var(--ease);
+            white-space: nowrap;
+        }
+        .sidebar:hover .sb-brand { opacity: 1; }
+
+        .sb-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px 0 8px;
+            scrollbar-width: none;
+        }
+        .sb-scroll::-webkit-scrollbar { display: none; }
+
+        .sb-label {
+            padding: 12px 20px 4px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #222;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity var(--ease);
+        }
+        .sidebar:hover .sb-label { opacity: 1; }
+
+        .sb-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 0 10px 21px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: color .15s, background .15s;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .sb-item:hover { color: var(--text); background: rgba(255,255,255,.03); }
+        .sb-item.active { color: var(--text); border-left-color: var(--accent); background: rgba(192,40,40,.06); }
+        .sb-icon {
+            font-size: 15px;
+            flex-shrink: 0;
+            width: 22px;
+            text-align: center;
+            line-height: 1;
+            font-style: normal;
+        }
+        .sb-text {
+            opacity: 0;
+            transition: opacity var(--ease);
+            white-space: nowrap;
+        }
+        .sidebar:hover .sb-text { opacity: 1; }
+
+        .sb-div {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+
+        .sb-profile {
+            flex-shrink: 0;
+            border-top: 1px solid var(--border);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: background .15s;
+            cursor: pointer;
+        }
+        .sb-profile:hover { background: rgba(255,255,255,.03); }
+        .sb-profile__avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+            display: block;
+        }
+        .sb-profile__icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--muted);
+        }
+        .sb-profile__info {
+            opacity: 0;
+            transition: opacity var(--ease);
+            min-width: 0;
+        }
+        .sidebar:hover .sb-profile__info { opacity: 1; }
+        .sb-profile__name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+        .sb-profile__sub {
+            font-size: 10px;
+            color: var(--accent);
+            margin-top: 1px;
+        }
+
+        /* ========== MAIN ========== */
+        .main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========== TOPBAR ========== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background: rgba(0,0,0,.96);
+            border-bottom: 1px solid var(--border);
+            gap: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .topbar-search {
+            position: relative;
+            flex: 1;
+            max-width: 360px;
+        }
+        .topbar-search i {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 12px;
+            pointer-events: none;
+        }
+        .topbar-search input {
+            width: 100%;
+            height: 36px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0 12px 0 34px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .15s;
+        }
+        .topbar-search input:focus { border-color: #333; }
+        .topbar-search input::placeholder { color: var(--muted); }
+        .search-results {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            z-index: 500;
+            display: none;
+            box-shadow: 0 16px 40px rgba(0,0,0,.8);
+        }
+        .search-results.show { display: block; }
+
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .topbar-profile { position: relative; }
+        .topbar-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border);
+            display: block;
+            cursor: pointer;
+            transition: border-color .15s;
+        }
+        .topbar-avatar:hover { border-color: var(--accent); }
+        .topbar-avatar-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .profile-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            width: 200px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(0,0,0,.8);
+            display: none;
+            z-index: 1000;
+        }
+        .topbar-profile:hover .profile-menu { display: block; }
+        .pp-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .pp-name { font-size: 13px; font-weight: 600; color: var(--text); }
+        .pp-role { font-size: 10px; color: var(--accent); margin-top: 1px; }
+        .pp-menu { padding: 4px 0; }
+        .pp-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted-light);
+            transition: color .12s, background .12s;
+        }
+        .pp-item:hover { color: var(--text); background: rgba(255,255,255,.03); }
+        .pp-item i { width: 14px; text-align: center; font-size: 11px; }
+        .pp-item.premium { color: #a07820; }
+        .pp-item.danger   { color: #8b2020; }
+        .pp-item.danger:hover { color: #c03030; }
+        .pp-divider { height: 1px; background: var(--border); margin: 3px 0; }
+
+        /* ========== HERO BANNER ========== */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 460px;
+            overflow: hidden;
+            background: var(--bg);
+            flex-shrink: 0;
+        }
+        .hero-track {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            width: 100%;
+            height: 100%;
+            will-change: transform;
+            transition: transform 0.4s ease;
+        }
+        .hero-slide {
+            min-width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center 20%;
+            flex-shrink: 0;
+        }
+        .slider-arrows {
+            position: absolute;
+            bottom: 24px;
+            right: 48px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+        .slider-arrow {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .slider-arrow:hover { background: rgba(192,40,40,0.6); }
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(to right, rgba(0,0,0,.95) 0%, rgba(0,0,0,.7) 45%, rgba(0,0,0,.4) 100%),
+                linear-gradient(to top, rgba(0,0,0,.9) 0%, transparent 60%),
+                radial-gradient(ellipse at 85% 50%, rgba(192,40,40,.10) 0%, transparent 55%);
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 0 48px 48px;
+            max-width: 580px;
+        }
+        .hero-pretitle {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 14px;
+        }
+        .hero-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.6rem, 3vw, 2.6rem);
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 14px;
+            letter-spacing: -.3px;
+            max-width: 540px;
+        }
+        .hero-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .hero-pill {
+            padding: 3px 10px;
+            border: 1px solid #252525;
+            border-radius: 2px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted-light);
+            background: rgba(255,255,255,.04);
+        }
+        .hero-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,.5);
+            line-height: 1.65;
+            margin-bottom: 28px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            max-width: 480px;
+        }
+        .hero-btns { display: flex; gap: 10px; }
+        .hero-btn-play {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: .3px;
+            transition: background .15s;
+            border: none;
+            cursor: pointer;
+        }
+        .hero-btn-play:hover { background: #d43030; }
+        .hero-btn-list {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: rgba(255,255,255,.7);
+            padding: 10px 20px;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid #333;
+            transition: border-color .15s, color .15s;
+            cursor: pointer;
+        }
+        .hero-btn-list:hover { border-color: #555; color: #fff; }
+
+        .hero-dots {
+            position: absolute;
+            bottom: 76px;
+            right: 48px;
+            z-index: 3;
+            display: flex;
+            gap: 5px;
+        }
+        .hero-dot {
+            width: 20px;
+            height: 2px;
+            background: #333;
+            border: none;
+            cursor: pointer;
+            transition: all .25s;
+        }
+        .hero-dot.active { width: 36px; background: var(--accent); }
+
+        /* ========== CONTENT ========== */
+        .content { padding: 0 32px 80px; }
+
+        .section { margin-top: 44px; }
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .section-link {
+            font-size: 11px;
+            color: #333;
+            transition: color .15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .section-link:hover { color: var(--muted-light); }
+
+        .row-wrap { position: relative; }
+        .card-row {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            overflow-y: visible;
+            padding-bottom: 12px;
+            padding-top: 6px;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+        }
+        .card-row::-webkit-scrollbar { display: none; }
+        .row-btn {
+            position: absolute;
+            top: 50%;
+            z-index: 4;
+            width: 36px;
+            height: 52px;
+            background: rgba(0,0,0,.9);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: all .15s;
+            border-radius: 2px;
+        }
+        .row-wrap:hover .row-btn { opacity: 1; }
+        .row-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .row-btn-l { left: -2px; }
+        .row-btn-r { right: -2px; }
+
+        /* Карточка фильма */
+        .kp-card {
+            flex: 0 0 180px;
+            width: 180px;
+            display: block;
+            text-decoration: none;
+            color: var(--text);
+            border-radius: 3px;
+            overflow: visible;
+            cursor: pointer;
+            transition: transform .2s ease;
+            position: relative;
+        }
+        .kp-card:hover { transform: scale(1.04); z-index: 10; }
+        .kp-card__poster {
+            position: relative;
+            width: 100%;
+            height: 270px;
+            overflow: hidden;
+            background: var(--card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: border-color .22s;
+        }
+        .kp-card:hover .kp-card__poster { border-color: var(--accent); }
+        .kp-card__img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform .3s;
+        }
+        .kp-card:hover .kp-card__img { transform: scale(1.04); }
+
+        .kp-card__rating {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+            z-index: 2;
+        }
+        .kp-card__rating--high { background: rgba(34,139,34,.92); color: #fff; }
+        .kp-card__rating--mid  { background: rgba(184,134,11,.92); color: #fff; }
+        .kp-card__rating--low  { background: rgba(100,100,100,.85); color: #ddd; }
+
+        .kp-card__rank {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            font-size: 22px;
+            font-weight: 800;
+            color: rgba(255,255,255,.08);
+            line-height: 1;
+            z-index: 2;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .kp-card__overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity .2s;
+            z-index: 3;
+            border-radius: 3px;
+        }
+        .kp-card:hover .kp-card__overlay { opacity: 1; }
+        .kp-card__play {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 10px;
+            transition: transform .15s;
+        }
+        .kp-card:hover .kp-card__play { transform: scale(1.08); }
+        .kp-card__ov-btn {
+            display: block;
+            background: rgba(0,0,0,.7);
+            color: rgba(255,255,255,.8);
+            padding: 5px 12px;
+            border-radius: 2px;
+            font-size: 10px;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            border: 1px solid #333;
+            transition: border-color .12s;
+        }
+        .kp-card__ov-btn:hover { border-color: #555; color: #fff; }
+
+        .kp-card__footer {
+            padding: 8px 2px 0;
+        }
+        .kp-card__name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 2px;
+        }
+        .kp-card__year {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        /* Карточка "Продолжить просмотр" */
+        .kp-continue-card {
+            flex: 0 0 280px;
+            width: 280px;
+            display: block;
+            text-decoration: none;
+            color: var(--text);
+            border-radius: 3px;
+            overflow: visible;
+            cursor: pointer;
+            transition: transform .22s;
+        }
+        .kp-continue-card:hover { transform: translateY(-5px); z-index: 10; }
+        .kp-continue-card__poster {
+            position: relative;
+            width: 100%;
+            height: 157px;
+            overflow: hidden;
+            background: var(--card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: border-color .22s;
+        }
+        .kp-continue-card:hover .kp-continue-card__poster { border-color: var(--accent); }
+        .kp-continue-card__img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform .3s;
+        }
+        .kp-continue-card:hover .kp-continue-card__img { transform: scale(1.03); }
+        .kp-continue-card__overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity .2s;
+            border-radius: 3px;
+        }
+        .kp-continue-card:hover .kp-continue-card__overlay { opacity: 1; }
+        .kp-continue-card__play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #fff;
+            transition: transform .15s;
+        }
+        .kp-continue-card:hover .kp-continue-card__play-btn { transform: scale(1.1); }
+        .kp-continue-card__pct {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0,0,0,.8);
+            padding: 2px 5px;
+            border-radius: 2px;
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--muted-light);
+        }
+        .kp-continue-card__progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #1a1a1a;
+        }
+        .kp-continue-card__progress-fill {
+            height: 100%;
+            background: var(--accent);
+        }
+        .kp-continue-card__footer { padding: 6px 2px 0; }
+        .kp-continue-card__name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .kp-continue-card__bar {
+            height: 2px;
+            background: #1a1a1a;
+            margin-top: 5px;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+        .kp-continue-card__bar-fill {
+            height: 100%;
+            background: var(--accent);
+        }
+
+        /* Карточка Top-10 */
+        .kp-top10-card {
+            flex: 0 0 200px;
+            width: 200px;
+            display: flex;
+            align-items: flex-end;
+            text-decoration: none;
+            color: var(--text);
+            cursor: pointer;
+            position: relative;
+            transition: transform .2s;
+        }
+        .kp-top10-card:hover { transform: scale(1.04); z-index: 10; }
+        .kp-top10-card__num {
+            font-size: 120px;
+            font-weight: 900;
+            color: #111;
+            line-height: 1;
+            letter-spacing: -6px;
+            flex-shrink: 0;
+            margin-right: -14px;
+            z-index: 1;
+            font-family: 'Syne', sans-serif;
+            -webkit-text-stroke: 1px #252525;
+            opacity: .85;
+            user-select: none;
+        }
+        .kp-top10-card__poster {
+            width: 130px;
+            height: 195px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+            border: 1px solid var(--border);
+            transition: border-color .22s;
+        }
+        .kp-top10-card:hover .kp-top10-card__poster { border-color: var(--accent); }
+        .kp-top10-card__poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .kp-top10-card__overlay {
+            position: absolute;
+            inset: 0 0 0 auto;
+            width: 130px;
+            z-index: 3;
+            background: linear-gradient(to top, rgba(0,0,0,.92) 0%, transparent 55%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 8px;
+            border-radius: 0 0 8px 0;
+            opacity: 0;
+            transition: opacity .2s;
+        }
+        .kp-top10-card:hover .kp-top10-card__overlay { opacity: 1; }
+        .kp-top10-card__overlay .kp-card__ov-btn { font-size: 10px; padding: 5px 10px; }
+
+        /* Skeleton загрузки */
+        @keyframes shimmer {
+            0%   { background-position: -600px 0; }
+            100% { background-position:  600px 0; }
+        }
+        .kp-skeleton {
+            flex: 0 0 180px;
+            width: 180px;
+            height: 270px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--card) 25%, #141414 50%, var(--card) 75%);
+            background-size: 1200px 100%;
+            animation: shimmer 1.8s infinite linear;
+        }
+
+        /* Коллекции (жанровые подборки) */
+        .collections {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 44px;
+        }
+        .collection {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 180px;
+            border: 1px solid var(--border);
+            display: block;
+            text-decoration: none;
+            transition: border-color .15s;
+        }
+        .collection:hover { border-color: #333; }
+        .collection__bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: transform .4s;
+            filter: brightness(.4) saturate(.6);
+        }
+        .collection:hover .collection__bg { transform: scale(1.04); filter: brightness(.5) saturate(.7); }
+        .collection__body {
+            position: relative;
+            z-index: 1;
+            padding: 18px 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .collection__label {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .collection__title {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .collection__sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+        /* Попап с деталями */
+        #cardPopup {
+            position: fixed;
+            z-index: 99999;
+            width: 280px;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(.95);
+            transition: opacity .2s ease, transform .2s ease;
+        }
+        #cardPopup.show { opacity: 1; transform: scale(1); pointer-events: auto; }
+        #cardPopup .cp-btns a { pointer-events: auto; }
+        #cardPopup .cp-shell {
+            background: #111111;
+            border: 1px solid #222222;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,.8);
+        }
+        #cardPopup .cp-img {
+            width: 100%;
+            height: 157px;
+            object-fit: cover;
+            display: block;
+            background: #0a0a0a;
+        }
+        #cardPopup .cp-body { padding: 12px 14px 14px; }
+        #cardPopup .cp-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+            line-height: 1.25;
+        }
+        #cardPopup .cp-meta {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #cardPopup .cp-genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        #cardPopup .cp-genre-tag {
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            color: #666;
+        }
+        #cardPopup .cp-rate {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        #cardPopup .cp-rate-hi  { background: rgba(34,139,34,.9);  color: #fff; }
+        #cardPopup .cp-rate-mid { background: rgba(184,134,11,.9); color: #fff; }
+        #cardPopup .cp-rate-lo  { background: rgba(120,120,120,.7);color: #ddd; }
+        #cardPopup .cp-desc {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        #cardPopup .cp-btns { display: flex; gap: 8px; }
+        #cardPopup .cp-btn-play {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background .12s;
+        }
+        #cardPopup .cp-btn-play:hover { background: #d43030; }
+        #cardPopup .cp-btn-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background: transparent;
+            color: #aaa;
+            border: 1px solid #333;
+            border-radius: 7px;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color .12s, color .12s;
+        }
+        #cardPopup .cp-btn-info:hover { border-color: #555; color: #fff; }
+
+        /* Уведомления */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(60px);
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 99999;
+            opacity: 0;
+            transition: transform .25s, opacity .25s;
+            white-space: nowrap;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        .scroll-top {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 40px;
+            height: 40px;
+            border-radius: 2px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 13px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            transition: border-color .15s, color .15s;
+        }
+        .scroll-top.show { display: flex; }
+        .scroll-top:hover { border-color: #333; color: var(--text); }
+
+        #avatarUploadOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.85);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+            color: var(--text);
+            font-size: 14px;
+        }
+        #avatarUploadOverlay.show { display: flex; }
+        #avatarUploadOverlay .spin {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #1a1a1a;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: _spin .8s linear infinite;
+        }
+        @keyframes _spin { to { transform: rotate(360deg); } }
+
+        /* Адаптивность */
+        @media (max-width: 900px) {
+            .collections { grid-template-columns: 1fr 1fr; }
+            .content { padding: 0 20px 60px; }
+            .hero-content { padding: 0 24px 36px; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .topbar  { padding: 0 16px; }
+            .collections { grid-template-columns: 1fr; }
+            .hero { height: 360px; }
+            .hero-title { font-size: 1.6rem; }
+            .hero-desc { display: none; }
+            .hero-btn-list { display: none; }
+            .row-btn { display: none; }
+            .content { padding: 0 12px 60px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Overlay для загрузки аватара -->
+<div id="avatarUploadOverlay"><div class="spin"></div><span>Загрузка...</span></div>
+
+<!-- ==================== LAYOUT ==================== -->
+<div class="layout">
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="sidebar" id="kfSidebar">
+        <a href="/" class="sb-logo">
+            <svg class="sb-gem" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="8,14 16,2 24,14" fill="#e04040"/>
+                <polygon points="10,14 16,5 22,14 16,16" fill="#f05555"/>
+                <polygon points="3,20 8,14 16,16 11,22" fill="#901818"/>
+                <polygon points="29,20 24,14 16,16 21,22" fill="#d03232"/>
+                <polygon points="3,20 11,22 16,16 21,22 29,20 25,26 16,28 7,26" fill="#c02828"/>
+                <polygon points="3,20 7,26 16,36" fill="#7a1414"/>
+                <polygon points="29,20 25,26 16,36" fill="#a81e1e"/>
+                <polygon points="7,26 16,28 25,26 16,36" fill="#901c1c"/>
+                <polygon points="13,6 19,6 17,12 15,12" fill="#f87070" opacity="0.45"/>
+            </svg>
+            <span class="sb-brand">NOIR</span>
+        </a>
+
+        <div class="sb-scroll">
+            <a href="/"              class="sb-item active"><i class="sb-icon fas fa-home"></i><span class="sb-text">Главная</span></a>
+            <a href="/movie"         class="sb-item"><i class="sb-icon fas fa-film"></i><span class="sb-text">Фильмы</span></a>
+            <a href="/series"        class="sb-item"><i class="sb-icon fas fa-tv"></i><span class="sb-text">Сериалы</span></a>
+            <a href="/tv"            class="sb-item"><i class="sb-icon fas fa-satellite-dish"></i><span class="sb-text">ТВ каналы</span></a>
+            <a href="/sport"         class="sb-item"><i class="sb-icon fas fa-trophy"></i><span class="sb-text">Спорт</span></a>
+
+            <div class="sb-div"></div>
+            <div class="sb-label">Моё</div>
+
+            <a href="/profile#favorites" class="sb-item"><i class="sb-icon fas fa-heart"></i><span class="sb-text">Избранное</span></a>
+            <a href="/profile#history"   class="sb-item"><i class="sb-icon fas fa-history"></i><span class="sb-text">История</span></a>
+            <a href="/subscriptions"     class="sb-item"><i class="sb-icon fas fa-crown"></i><span class="sb-text">Подписки</span></a>
+            <a href="/chat"              class="sb-item"><i class="sb-icon fas fa-comments"></i><span class="sb-text">Чат</span></a>
+            <a href="/ai-pick"           class="sb-item"><i class="sb-icon fas fa-magic"></i><span class="sb-text">AI Подбор</span></a>
+
+            {% if is_admin %}
+            <div class="sb-div"></div>
+            <a href="/admin" class="sb-item" style="color:var(--accent)"><i class="sb-icon fas fa-shield-alt"></i><span class="sb-text">Админ</span></a>
+            {% endif %}
+        </div>
+
+        <a href="/profile" class="sb-profile">
+            {% if session.get('user_id') %}
+            <img src="{{ session.get('avatar_url') or '/static/img/avatar_default.svg' }}"
+                 alt="" class="sb-profile__avatar">
+            <div class="sb-profile__info">
+                <div class="sb-profile__name">{{ session.get('user_name') or 'Пользователь' }}</div>
+                {% if is_admin %}<div class="sb-profile__sub">Администратор</div>{% endif %}
+            </div>
+            {% else %}
+            <div class="sb-profile__icon"><i class="fas fa-user"></i></div>
+            <div class="sb-profile__info">
+                <div class="sb-profile__name">Войти</div>
+            </div>
+            {% endif %}
+        </a>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <div class="main">
+
+        <!-- ==================== TOPBAR ==================== -->
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Поиск...">
+                <div class="search-results" id="searchResults"></div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-profile">
+                    {% if session.get('user_id') %}
+                    <img id="navAvatarImg"
+                         src="{{ session.get('avatar_url') or '/static/img/avatar_default.svg' }}"
+                         alt="" class="topbar-avatar">
+                    {% else %}
+                    <div class="topbar-avatar-icon"><i class="fas fa-user"></i></div>
+                    {% endif %}
+                    <div class="profile-menu">
+                        {% if session.get('user_id') %}
+                        <div class="pp-header">
+                            <img src="{{ session.get('avatar_url') or '/static/img/avatar_default.svg' }}"
+                                 alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid #1a1a1a;">
+                            <div>
+                                <div class="pp-name">{{ session.get('user_name') or 'Пользователь' }}</div>
+                                {% if is_admin %}<div class="pp-role">Администратор</div>{% endif %}
+                            </div>
+                        </div>
+                        <div class="pp-menu">
+                            <a href="/profile"           class="pp-item"><i class="fas fa-user"></i> Профиль</a>
+                            <a href="/subscriptions"     class="pp-item premium"><i class="fas fa-crown"></i> Подписки</a>
+                            <a href="/profile#history"   class="pp-item"><i class="fas fa-history"></i> История</a>
+                            <a href="/profile#favorites" class="pp-item"><i class="fas fa-heart"></i> Избранное</a>
+                            {% if is_admin %}
+                            <div class="pp-divider"></div>
+                            <a href="/admin" class="pp-item"><i class="fas fa-shield-alt"></i> Панель</a>
+                            {% endif %}
+                            <div class="pp-divider"></div>
+                            <a href="/logout" class="pp-item danger"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+                        </div>
+                        {% else %}
+                        <div class="pp-menu">
+                            <a href="/login"            class="pp-item"><i class="fas fa-sign-in-alt"></i> Войти</a>
+                            <a href="/login?register=1" class="pp-item"><i class="fas fa-user-plus"></i> Регистрация</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==================== HERO SLIDER ==================== -->
+        {% if hero_data %}
+        <div class="hero" id="kpHero">
+            <div class="hero-track" id="heroTrack"></div>
+            <div class="hero-overlay"></div>
+
+            <div class="hero-content">
+                <div class="hero-pretitle">Рекомендуем</div>
+                <h1 class="hero-title" id="heroTitle">{{ hero_data[0].title }}</h1>
+                <div class="hero-pills" id="heroMeta">
+                    {% if hero_data[0].year %}<span class="hero-pill">{{ hero_data[0].year }}</span>{% endif %}
+                    {% if hero_data[0].genre %}<span class="hero-pill">{{ hero_data[0].genre.split(',')[0] }}</span>{% endif %}
+                    {% if hero_data[0].rating %}<span class="hero-pill">{{ hero_data[0].rating }}</span>{% endif %}
+                </div>
+                {% if hero_data[0].description %}
+                <p class="hero-desc" id="heroDesc">{{ hero_data[0].description[:200] }}{% if hero_data[0].description|length > 200 %}...{% endif %}</p>
+                {% endif %}
+                <div class="hero-btns">
+                    <a href="/watch/{{ hero_data[0].id }}" id="heroPlayBtn" class="hero-btn-play">
+                        <i class="fas fa-play" style="font-size:11px"></i> Смотреть
+                    </a>
+                    <a href="/movie/{{ hero_data[0].id }}" id="heroInfoBtn" class="hero-btn-list">
+                        + Подробнее
+                    </a>
+                </div>
+            </div>
+
+            {% if hero_data|length > 1 %}
+            <div class="hero-dots" id="heroDots">
+                {% for m in hero_data %}
+                <button class="hero-dot {% if loop.first %}active{% endif %}"
+                        onclick="heroGo('{{ loop.index0 }}')"></button>
+                {% endfor %}
+            </div>
+            <div class="slider-arrows">
+                <button class="slider-arrow" onclick="heroStep(-1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="slider-arrow" onclick="heroStep(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ==================== CONTENT ==================== -->
+        <div class="content">
+
+            <!-- Продолжить просмотр -->
+            {% if continue_movies %}
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Продолжить просмотр</div>
+                </div>
+                <div class="row-wrap">
+                    <button class="row-btn row-btn-l" onclick="scrollRow('rowContinue',-1)"><i class="fas fa-chevron-left"></i></button>
+                    <div class="card-row" id="rowContinue">
+                        {% for w in continue_movies %}
+                        <a href="/watch/{{ w.id }}" class="kp-continue-card"
+                           data-id="{{ w.id }}"
+                           data-title="{{ w.title | e }}"
+                           data-year="{{ w.year or '' }}"
+                           data-rating="{{ w.rating or '' }}"
+                           data-age="{{ w.age_rating or '' }}"
+                           data-genre="{{ (w.genre or '').split(',')[0].strip() | e }}"
+                           data-description="{{ (w.description or '')[:200] | e }}"
+                           data-backdrop="{{ ('/static/posters/' + w.poster) if w.poster and not w.poster.startswith('http') else (w.poster or '') }}">
+                            <div class="kp-continue-card__poster">
+                                <img src="{{ ('/static/posters/' + w.poster) if w.poster and not w.poster.startswith('http') else (w.poster or '') }}"
+                                     class="kp-continue-card__img" loading="lazy"
+                                     onerror="this.onerror=null; this.src='/static/img/no_poster.svg';">
+                                <div class="kp-continue-card__overlay">
+                                    <div class="kp-continue-card__play-btn"><i class="fas fa-play" style="font-size:11px"></i></div>
+                                </div>
+                                <div class="kp-continue-card__pct">{{ w.progress or 0 }}%</div>
+                                <div class="kp-continue-card__progress">
+                                    <div class="kp-continue-card__progress-fill" style="width:{{ w.progress or 0 }}%"></div>
+                                </div>
+                            </div>
+                            <div class="kp-continue-card__footer">
+                                <div class="kp-continue-card__name">{{ w.title }}</div>
+                                <div class="kp-continue-card__bar">
+                                    <div class="kp-continue-card__bar-fill" style="width:{{ w.progress or 0 }}%"></div>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    <button class="row-btn row-btn-r" onclick="scrollRow('rowContinue',1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Популярные фильмы (TMDB) -->
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Популярные фильмы</div>
+                    <a href="/movie" class="section-link">Все фильмы <i class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="row-wrap">
+                    <button class="row-btn row-btn-l" onclick="scrollRow('rowMovies',-1)"><i class="fas fa-chevron-left"></i></button>
+                    <div class="card-row" id="rowMovies">
+                        {% for i in range(12) %}<div class="kp-skeleton"></div>{% endfor %}
+                    </div>
+                    <button class="row-btn row-btn-r" onclick="scrollRow('rowMovies',1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Коллекции (жанровые подборки) -->
+            <div class="collections">
+                <a href="/movie?genre=Боевик" class="collection">
+                    <div class="collection__bg" style="background-image:url('https://image.tmdb.org/t/p/w780/8UlWHLMpgZm9bx6QYh0NFoq67TZ.jpg')"></div>
+                    <div class="collection__body">
+                        <div class="collection__label">Жанр</div>
+                        <div class="collection__title">Боевики</div>
+                        <div class="collection__sub">Смотреть подборку</div>
+                    </div>
+                </a>
+                <a href="/movie?genre=Триллер" class="collection">
+                    <div class="collection__bg" style="background-image:url('https://image.tmdb.org/t/p/w780/cdqLnri3NEGcmfnqwk2TSIYtddg.jpg')"></div>
+                    <div class="collection__body">
+                        <div class="collection__label">Жанр</div>
+                        <div class="collection__title">Триллеры</div>
+                        <div class="collection__sub">Смотреть подборку</div>
+                    </div>
+                </a>
+                <a href="/series" class="collection">
+                    <div class="collection__bg" style="background-image:url('https://image.tmdb.org/t/p/w780/56v2KjBlU4XaOv9rVYEQypROD7P.jpg')"></div>
+                    <div class="collection__body">
+                        <div class="collection__label">Подборка</div>
+                        <div class="collection__title">Сериалы</div>
+                        <div class="collection__sub">Смотреть подборку</div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Топ-10 -->
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Топ-10 прямо сейчас</div>
+                </div>
+                <div class="row-wrap">
+                    <button class="row-btn row-btn-l" onclick="scrollRow('rowTop10',-1)"><i class="fas fa-chevron-left"></i></button>
+                    <div class="card-row" id="rowTop10">
+                        {% for i in range(6) %}<div class="kp-skeleton" style="flex:0 0 200px;width:200px;height:195px;"></div>{% endfor %}
+                    </div>
+                    <button class="row-btn row-btn-r" onclick="scrollRow('rowTop10',1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Популярные сериалы -->
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Популярные сериалы</div>
+                    <a href="/series" class="section-link">Все сериалы <i class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="row-wrap">
+                    <button class="row-btn row-btn-l" onclick="scrollRow('rowSeries',-1)"><i class="fas fa-chevron-left"></i></button>
+                    <div class="card-row" id="rowSeries">
+                        {% for i in range(12) %}<div class="kp-skeleton"></div>{% endfor %}
+                    </div>
+                    <button class="row-btn row-btn-r" onclick="scrollRow('rowSeries',1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Боевики -->
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Боевики</div>
+                    <a href="/movie?genre=Боевик" class="section-link">Ещё <i class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="row-wrap">
+                    <button class="row-btn row-btn-l" onclick="scrollRow('rowAction',-1)"><i class="fas fa-chevron-left"></i></button>
+                    <div class="card-row" id="rowAction">
+                        {% for i in range(12) %}<div class="kp-skeleton"></div>{% endfor %}
+                    </div>
+                    <button class="row-btn row-btn-r" onclick="scrollRow('rowAction',1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Триллеры -->
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Триллеры</div>
+                </div>
+                <div class="row-wrap">
+                    <button class="row-btn row-btn-l" onclick="scrollRow('rowThriller',-1)"><i class="fas fa-chevron-left"></i></button>
+                    <div class="card-row" id="rowThriller">
+                        {% for i in range(12) %}<div class="kp-skeleton"></div>{% endfor %}
+                    </div>
+                    <button class="row-btn row-btn-r" onclick="scrollRow('rowThriller',1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Новинки -->
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Новинки в кино</div>
+                </div>
+                <div class="row-wrap">
+                    <button class="row-btn row-btn-l" onclick="scrollRow('rowNew',-1)"><i class="fas fa-chevron-left"></i></button>
+                    <div class="card-row" id="rowNew">
+                        {% for i in range(12) %}<div class="kp-skeleton"></div>{% endfor %}
+                    </div>
+                    <button class="row-btn row-btn-r" onclick="scrollRow('rowNew',1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- Тосты и кнопка наверх -->
+<div class="toast" id="toast"></div>
+<button class="scroll-top" id="scrollToTop"><i class="fas fa-chevron-up"></i></button>
+
+<!-- Попап с деталями -->
+<div id="cardPopup">
+    <div class="cp-shell">
+        <img id="cpImg" class="cp-img" src="" alt="">
+        <div class="cp-body">
+            <div class="cp-title" id="cpTitle"></div>
+            <div class="cp-meta"  id="cpMeta"></div>
+            <div class="cp-genres" id="cpGenres"></div>
+            <div class="cp-rate"   id="cpRate"></div>
+            <div class="cp-desc"   id="cpDesc"></div>
+            <div class="cp-btns">
+                <a id="cpPlay" href="#" class="cp-btn-play">&#9654; Смотреть</a>
+                <a id="cpInfo" href="#" class="cp-btn-info">+ Подробнее</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== СКРИПТЫ ==================== -->
+<script>
+    // Глобальные настройки
+    const TMDB_API_KEY = '{{ tmdb_api_key }}'; // передаётся из бэкенда через прокси, либо используем прокси-роут
+    const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/';
+    const _seen = new Set(); // для уникальности карточек
+
+    // --- Поиск (обработка Enter) ---
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                window.location.href = '/search?q=' + encodeURIComponent(this.value.trim());
+            }
+        });
+    }
+
+    // --- Хоткей '/' для фокуса поиска ---
+    document.addEventListener('keydown', function(e) {
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            const s = document.getElementById('searchInput');
+            if (s) { s.focus(); s.select(); }
+        }
+        if (e.key === 'Escape') {
+            const sr = document.getElementById('searchResults');
+            if (sr) { sr.classList.remove('show'); sr.innerHTML = ''; }
+        }
+    });
+
+    // --- Уведомления ---
+    window.showToast = function(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.className = 'toast show ' + type;
+        clearTimeout(t._tid);
+        t._tid = setTimeout(() => t.classList.remove('show'), 3000);
+    };
+
+    // --- Кнопка "наверх" ---
+    const toTop = document.getElementById('scrollToTop');
+    if (toTop) {
+        window.addEventListener('scroll', () => {
+            toTop.classList.toggle('show', window.scrollY > 400);
+        }, { passive: true });
+        toTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // --- Скролл рядов ---
+    window.scrollRow = function(id, dir) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.scrollBy({ left: dir * 520, behavior: 'smooth' });
+    };
+
+    // --- HERO SLIDER (используем hero_data из шаблона) ---
+    const HERO = {{ hero_data | tojson }};
+    let curHero = 0;
+    let heroTimer = null;
+
+    function buildHeroSlides() {
+        const track = document.getElementById('heroTrack');
+        if (!track || !HERO.length) return;
+        track.innerHTML = '';
+        HERO.forEach((item, idx) => {
+            const slide = document.createElement('div');
+            slide.className = 'hero-slide';
+            slide.id = 'heroSlide' + idx;
+            slide.style.backgroundImage = "url('" + (item.poster_url || '') + "')";
+            track.appendChild(slide);
+        });
+    }
+
+    function updateHeroMeta(idx) {
+        const d = HERO[idx];
+        document.getElementById('heroTitle').textContent = d.title || '';
+        document.getElementById('heroDesc').textContent = (d.description || '').substring(0,200) + ((d.description||'').length>200?'...':'');
+        document.getElementById('heroPlayBtn').href = '/watch/' + d.id;
+        document.getElementById('heroInfoBtn').href = '/movie/' + d.id;
+        const meta = document.getElementById('heroMeta');
+        meta.innerHTML = (d.year ? '<span class="hero-pill">'+d.year+'</span>' : '') +
+                         (d.genre ? '<span class="hero-pill">'+d.genre.split(',')[0]+'</span>' : '') +
+                         (d.rating ? '<span class="hero-pill">'+d.rating+'</span>' : '');
+        document.querySelectorAll('.hero-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === idx);
+        });
+    }
+
+    function goHero(n) {
+        if (!HERO.length) return;
+        curHero = ((n % HERO.length) + HERO.length) % HERO.length;
+        const track = document.getElementById('heroTrack');
+        if (track) track.style.transform = 'translateX(-' + (curHero * 100) + '%)';
+        updateHeroMeta(curHero);
+        resetHeroTimer();
+    }
+
+    function resetHeroTimer() {
+        if (heroTimer) clearInterval(heroTimer);
+        if (HERO.length > 1) heroTimer = setInterval(() => goHero(curHero + 1), 8000);
+    }
+
+    window.heroStep = (delta) => goHero(curHero + delta);
+    window.heroGo = goHero;
+
+    if (HERO.length) {
+        buildHeroSlides();
+        goHero(0);
+        resetHeroTimer();
+        const heroWrap = document.getElementById('kpHero');
+        if (heroWrap) {
+            heroWrap.addEventListener('mouseenter', () => clearInterval(heroTimer));
+            heroWrap.addEventListener('mouseleave', resetHeroTimer);
+        }
+    }
+
+    // --- Загрузка карточек с TMDB через прокси Flask ---
+    async function loadRow(url, containerId, isMovie = true, isTop10 = false) {
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const items = (data.results || []).filter(item => {
+                if (!item.poster_path) return false;
+                if (item.vote_average < 5) return false;
+                const key = (isMovie ? 'm' : 't') + item.id;
+                if (_seen.has(key)) return false;
+                _seen.add(key);
+                return true;
+            }).slice(0, 14);
+            if (items.length === 0) {
+                container.innerHTML = '<div style="color:#444;padding:20px;">Нет данных</div>';
+                return;
+            }
+            container.innerHTML = items.map((item, index) => {
+                const title = (item.title || item.name || '').replace(/</g, '&lt;');
+                const year = (item.release_date || item.first_air_date || '').split('-')[0];
+                const rating = item.vote_average ? item.vote_average.toFixed(1) : '';
+                const type = isMovie ? 'movie' : 'tv';
+                const url = `/${isMovie ? 'movie' : 'series'}/tmdb/${item.id}`;
+                
+                if (isTop10) {
+                    const rank = index + 1;
+                    return `
+                        <a href="${url}" class="movie-card kf-pop-card" data-tmdb="${item.id}" data-type="${type}" style="position:relative;">
+                            <div style="position:absolute;top:-10px;left:-10px;background:#c02828;color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;z-index:10;box-shadow:0 4px 10px rgba(0,0,0,.5);font-style:italic;">${rank}</div>
+                            <div class="movie-poster-wrap">
+                                <img src="https://image.tmdb.org/t/p/w342${item.poster_path}" class="movie-img" loading="lazy" onerror="this.src='/static/img/no_poster.svg'">
+                                ${rating ? `<div class="movie-badge-top">★ ${rating}</div>` : ''}
+                                <div class="mc-ov"><div class="mc-ov-play"><i class="fas fa-play"></i></div></div>
+                            </div>
+                            <div class="movie-meta-bottom">
+                                <div class="movie-title">${title}</div>
+                                <div class="movie-year">${year}</div>
+                            </div>
+                        </a>
+                    `;
+                } else {
+                    return `
+                        <a href="${url}" class="movie-card kf-pop-card" data-tmdb="${item.id}" data-type="${type}">
+                            <div class="movie-poster-wrap">
+                                <img src="https://image.tmdb.org/t/p/w342${item.poster_path}" class="movie-img" loading="lazy" onerror="this.src='/static/img/no_poster.svg'">
+                                ${rating ? `<div class="movie-badge-top">★ ${rating}</div>` : ''}
+                                <div class="mc-ov"><div class="mc-ov-play"><i class="fas fa-play"></i></div></div>
+                            </div>
+                            <div class="movie-meta-bottom">
+                                <div class="movie-title">${title}</div>
+                                <div class="movie-year">${year}</div>
+                            </div>
+                        </a>
+                    `;
+                }
+            }).join('');
+        } catch (e) {
+            console.error('Ошибка загрузки ряда', e);
+        }
+    }
+
+    // Вызовы загрузки (используем прокси-роуты на бэкенде)
+    document.addEventListener('DOMContentLoaded', () => {
+        // Проверяем, что элементы существуют
+        if (document.getElementById('rowMovies')) {
+            loadRow('/api/tmdb/movie/popular', 'rowMovies', true, false);
+        }
+        if (document.getElementById('rowTop10')) {
+            loadRow('/api/tmdb/movie/top_rated', 'rowTop10', true, true);
+        }
+        if (document.getElementById('rowSeries')) {
+            loadRow('/api/tmdb/tv/popular', 'rowSeries', false, false);
+        }
+        if (document.getElementById('rowAction')) {
+            loadRow('/api/tmdb/discover/movie?with_genres=28', 'rowAction', true, false);
+        }
+        if (document.getElementById('rowThriller')) {
+            loadRow('/api/tmdb/discover/movie?with_genres=53', 'rowThriller', true, false);
+        }
+        if (document.getElementById('rowNew')) {
+            loadRow('/api/tmdb/movie/now_playing', 'rowNew', true, false);
+        }
+    });
+
+    // --- Попап с деталями ---
+    (function() {
+        const popup = document.getElementById('cardPopup');
+        if (!popup) return;
+        let activeCard = null;
+        let timer = null;
+
+        function fillPopup(data) {
+            document.getElementById('cpImg').src = data.backdrop || data.poster || '';
+            document.getElementById('cpTitle').textContent = data.title || '';
+            document.getElementById('cpMeta').textContent = [data.year, data.duration, data.age].filter(Boolean).join(' · ');
+            const genreEl = document.getElementById('cpGenres');
+            genreEl.innerHTML = '';
+            (data.genres || []).slice(0,3).forEach(g => {
+                const span = document.createElement('span');
+                span.className = 'cp-genre-tag';
+                span.textContent = g;
+                genreEl.appendChild(span);
+            });
+            const rateEl = document.getElementById('cpRate');
+            const rv = parseFloat(data.rating) || 0;
+            if (rv > 0) {
+                rateEl.textContent = data.rating;
+                rateEl.className = 'cp-rate ' + (rv >= 7 ? 'cp-rate-hi' : rv >= 5 ? 'cp-rate-mid' : 'cp-rate-lo');
+                rateEl.style.display = '';
+            } else {
+                rateEl.style.display = 'none';
+            }
+            document.getElementById('cpDesc').textContent = data.desc || '';
+            document.getElementById('cpPlay').href = data.watchUrl || '#';
+            document.getElementById('cpInfo').href = data.detailUrl || '#';
+        }
+
+        function positionPopup(card) {
+            const rect = card.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const scrollY = window.scrollY;
+            const left = Math.max(8, Math.min(rect.left + rect.width/2 - 140, vw - 288));
+            const showAbove = rect.top > 400;
+            const top = showAbove ? rect.top + scrollY - 400 : rect.bottom + scrollY + 8;
+            popup.style.left = left + 'px';
+            popup.style.top = top + 'px';
+        }
+
+        async function showFromTmdb(card) {
+            const id = card.dataset.tmdb;
+            const type = card.dataset.type || 'movie';
+            if (!id) return;
+            try {
+                const response = await fetch(`/api/tmdb/${type}/${id}`);
+                const d = await response.json();
+                const data = {
+                    title: d.name || d.title || '',
+                    year: (d.first_air_date || d.release_date || '').split('-')[0],
+                    duration: d.runtime ? Math.floor(d.runtime/60)+'ч '+(d.runtime%60)+'мин' : (d.episode_run_time?.[0] ? d.episode_run_time[0]+'мин' : ''),
+                    age: d.adult ? '18+' : '',
+                    rating: d.vote_average ? d.vote_average.toFixed(1) : '',
+                    genres: (d.genres || []).map(g => g.name),
+                    desc: d.overview || '',
+                    backdrop: d.backdrop_path ? `https://image.tmdb.org/t/p/w780${d.backdrop_path}` : '',
+                    poster: d.poster_path ? `https://image.tmdb.org/t/p/w342${d.poster_path}` : '',
+                    watchUrl: `/watch/${type === 'tv' ? 'tv' : 'tmdb'}/${id}`,
+                    detailUrl: `/${type === 'tv' ? 'series' : 'movie'}/tmdb/${id}`
+                };
+                if (activeCard !== card) return;
+                fillPopup(data);
+                positionPopup(card);
+                popup.classList.add('show');
+            } catch (e) { console.error(e); }
+        }
+
+        function showFromData(card) {
+            const data = {
+                title: card.dataset.title || '',
+                year: card.dataset.year || '',
+                rating: card.dataset.rating || '',
+                age: card.dataset.age || '',
+                genres: (card.dataset.genre || '').split(',').map(s => s.trim()),
+                desc: card.dataset.description || '',
+                backdrop: card.dataset.backdrop || '',
+                poster: card.dataset.backdrop || '',
+                watchUrl: '/watch/' + (card.dataset.id || ''),
+                detailUrl: '/movie/' + (card.dataset.id || '')
+            };
+            fillPopup(data);
+            positionPopup(card);
+            popup.classList.add('show');
+        }
+
+        function attachCards() {
+            document.querySelectorAll('.kp-card[data-tmdb], .kp-continue-card[data-id]').forEach(card => {
+                if (card._popupAttached) return;
+                card._popupAttached = true;
+                card.addEventListener('mouseenter', () => {
+                    if (activeCard === card) return;
+                    clearTimeout(timer);
+                    activeCard = card;
+                    timer = setTimeout(() => {
+                        if (activeCard !== card) return;
+                        if (card.dataset.tmdb) showFromTmdb(card);
+                        else if (card.dataset.id) showFromData(card);
+                    }, 400);
+                });
+                card.addEventListener('mouseleave', () => {
+                    clearTimeout(timer);
+                    setTimeout(() => {
+                        if (popup && !popup.matches(':hover')) popup.classList.remove('show');
+                    }, 80);
+                });
+            });
+        }
+
+        popup.addEventListener('mouseleave', () => popup.classList.remove('show'));
+        attachCards();
+        new MutationObserver(attachCards).observe(document.body, { childList: true, subtree: true });
+    })();
+
+    // --- Обработка ошибок изображений (заглушка) ---
+    window.fallbackImage = function(img) {
+        img.onerror = null;
+        img.src = '/static/img/no_poster.svg';
+    };
+</script>
+
+<!-- Подключаем дополнительные JS, если нужно -->
+<script src="{{ url_for('static', filename='js/live-search.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/favorites.js') }}" defer></script>
+</body>
+</html>

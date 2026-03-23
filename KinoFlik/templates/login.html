@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — KinoFlik</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --acc:  #b02020;
+            --acc2: #b30000;
+            --bg0:  #0B0B0D;
+            --bg1:  #111114;
+            --bg2:  #18181C;
+            --bg3:  #1F1F24;
+            --txt1: #F2F2F5;
+            --txt2: #9999AA;
+            --txt3: #55555F;
+            --brd2: rgba(255,255,255,.12);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg0);
+            color: var(--txt1);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background-image: radial-gradient(ellipse at 60% 30%, rgba(90,150,120,.08) 0%, transparent 60%);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg1);
+            border: 1px solid var(--brd2);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 32px 80px rgba(0,0,0,.6);
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 8px;
+            font-family: 'Unbounded', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--txt1);
+        }
+        .auth-logo span { color: var(--acc); }
+
+        .auth-sub {
+            text-align: center;
+            color: var(--txt3);
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg2);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--txt3);
+            font-family: inherit;
+            transition: all .2s;
+        }
+        .auth-tab.active { background: var(--acc); color: #fff; }
+
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+
+        .f-group { margin-bottom: 16px; }
+        .f-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--txt3);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            margin-bottom: 7px;
+        }
+        .f-input-wrap { position: relative; }
+        .f-input-wrap > .icon-left {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--txt3);
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .f-input {
+            width: 100%;
+            padding: 12px 40px 12px 40px;
+            background: var(--bg2);
+            border: 1px solid var(--brd2);
+            border-radius: 12px;
+            color: var(--txt1);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color .2s;
+            box-sizing: border-box;
+        }
+        .f-input:focus {
+            border-color: rgba(90,150,120,.5);
+            background: rgba(90,150,120,.03);
+        }
+        .f-eye {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--txt3);
+            cursor: pointer;
+            z-index: 10;
+        }
+        .f-eye:hover { color: var(--txt1); }
+
+        .f-remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .f-remember input { width: 16px; height: 16px; accent-color: var(--acc); cursor: pointer; }
+        .f-remember span  { font-size: 13px; color: var(--txt2); }
+
+        .btn-auth {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--acc), var(--acc2));
+            color: #fff;
+            font-size: 15px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 8px 24px rgba(90,150,120,.35);
+            transition: all .25s;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+        }
+        .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(90,150,120,.5); }
+
+        .flash {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .flash.error   { background: rgba(90,150,120,.15);    border: 2px solid #b02020; color: #ff6b6b; }
+        .flash.success { background: rgba(61,214,140,.15); border: 2px solid #3DD68C; color: #3DD68C; }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--txt3);
+            font-size: 12px;
+            margin: 20px 0;
+        }
+        .auth-divider::before,
+        .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--brd2); }
+
+        .social-btns { display: flex; gap: 12px; }
+        .social-btn {
+            flex: 1;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: all .2s;
+            border: 1px solid var(--brd2);
+            background: var(--bg2);
+            color: var(--txt1);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
+        }
+        .social-btn:hover { transform: translateY(-2px); background: var(--bg3); }
+        .apple-btn  { background: #0e0e0e !important;    color: #fff !important; border-color: #333 !important; }
+        .google-btn { background: #fff !important;    color: #333 !important; border-color: #ddd !important; }
+        .vk-btn     { background: #0077FF !important; color: #fff !important; border-color: #0066dd !important; }
+
+        .strength-bar  { height: 4px; border-radius: 4px; background: var(--bg3); margin-top: 8px; overflow: hidden; }
+        .strength-fill { height: 100%; border-radius: 4px; transition: width .3s, background .3s; width: 0; }
+        .strength-hint { font-size: 11px; color: var(--txt3); margin-top: 4px; }
+
+        .auth-note {
+            text-align: center;
+            font-size: 12px;
+            color: var(--txt3);
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        .auth-note a { color: var(--acc); text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="auth-card">
+    <div class="auth-logo"><span>Kino</span>Flik</div>
+    <div class="auth-sub">Смотри кино без рекламы · 4K · Офлайн</div>
+
+    {% if error %}
+    <div class="flash error">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="flash success">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ success }}</span>
+    </div>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for cat, msg in messages %}
+    <div class="flash {{ cat }}">
+        <i class="fas fa-{% if cat == 'error' %}exclamation-circle{% else %}check-circle{% endif %}"></i>
+        <span>{{ msg }}</span>
+    </div>
+    {% endfor %}
+    {% endwith %}
+
+    <div class="auth-tabs">
+        <button class="auth-tab" id="tab-login"    onclick="switchTab('login')">Войти</button>
+        <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Регистрация</button>
+    </div>
+
+    <!-- ФОРМА ВХОДА -->
+    <form class="auth-form" id="form-login" method="POST" action="/login">
+        <div class="f-group">
+            <label class="f-label">Email</label>
+            <div class="f-input-wrap">
+                <i class="fas fa-envelope icon-left"></i>
+                <input class="f-input" type="email" name="email"
+                       value="{{ prefill_email or '' }}"
+                       placeholder="you@example.com" required autocomplete="email">
+            </div>
+        </div>
+        <div class="f-group">
+            <label class="f-label">Пароль</label>
+            <div class="f-input-wrap">
+                <i class="fas fa-lock icon-left"></i>
+                <input class="f-input" type="password" name="password" id="loginPass"
+                       placeholder="••••••••" required autocomplete="current-password">
+                <i class="f-eye fas fa-eye" onclick="togglePass('loginPass',this)"></i>
+            </div>
+            <label class="f-remember">
+                <input type="checkbox" name="remember">
+                <span>Запомнить меня</span>
+            </label>
+        </div>
+        <button type="submit" class="btn-auth">
+            <i class="fas fa-sign-in-alt"></i> Войти в аккаунт
+        </button>
+    </form>
+
+    <!-- ФОРМА РЕГИСТРАЦИИ -->
+    <form class="auth-form" id="form-register" method="POST" action="/register">
+        <div class="f-group">
+            <label class="f-label">Имя</label>
+            <div class="f-input-wrap">
+                <i class="fas fa-user icon-left"></i>
+                <input class="f-input" type="text" name="name"
+                       value="{{ prefill_name or '' }}"
+                       placeholder="Ваше имя" required autocomplete="name">
+            </div>
+        </div>
+        <div class="f-group">
+            <label class="f-label">Email</label>
+            <div class="f-input-wrap">
+                <i class="fas fa-envelope icon-left"></i>
+                <input class="f-input" type="email" name="email"
+                       value="{{ prefill_email or '' }}"
+                       placeholder="you@example.com" required autocomplete="email">
+            </div>
+        </div>
+        <div class="f-group">
+            <label class="f-label">Пароль</label>
+            <div class="f-input-wrap">
+                <i class="fas fa-lock icon-left"></i>
+                <input class="f-input" type="password" name="password" id="regPass"
+                       placeholder="Минимум 6 символов" required
+                       autocomplete="new-password" oninput="checkStrength(this.value)">
+                <i class="f-eye fas fa-eye" onclick="togglePass('regPass',this)"></i>
+            </div>
+            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+            <div class="strength-hint" id="strengthHint"></div>
+        </div>
+        <button type="submit" class="btn-auth">
+            <i class="fas fa-user-plus"></i> Создать аккаунт
+        </button>
+    </form>
+
+    <div class="auth-divider">или войти через</div>
+
+    <div class="social-btns">
+        <a href="/login/apple" class="social-btn apple-btn" title="Apple ID">
+            <i class="fab fa-apple" style="font-size:20px;"></i>
+        </a>
+        <a href="/login/google" class="social-btn google-btn" title="Google">
+            <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png"
+                 style="width:17px;height:17px;" alt="G">
+            <span>Google</span>
+        </a>
+        <a href="/login/vk" class="social-btn vk-btn" title="ВКонтакте">
+            <i class="fab fa-vk" style="font-size:18px;"></i>
+            <span>VK</span>
+        </a>
+    </div>
+
+    <div class="auth-note">
+        Регистрируясь, вы принимаете <a href="#">условия использования</a>
+    </div>
+</div>
+
+<script>
+    const ACTIVE_TAB = "{{ active_tab | default('login') }}";
+
+    function switchTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('form-' + tab).classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        let tab = ACTIVE_TAB;
+        if (window.location.search.includes('register')) tab = 'register';
+        switchTab(tab);
+    });
+
+    function togglePass(id, eye) {
+        const inp = document.getElementById(id);
+        if (!inp) return;
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        eye.className = 'f-eye fas fa-eye' + (inp.type === 'text' ? '-slash' : '');
+    }
+
+    function checkStrength(val) {
+        const fill = document.getElementById('strengthFill');
+        const hint = document.getElementById('strengthHint');
+        if (!fill) return;
+        let score = 0;
+        if (val.length >= 6)          score++;
+        if (val.length >= 10)         score++;
+        if (/[A-Z]/.test(val))        score++;
+        if (/[0-9]/.test(val))        score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        const levels = [
+            { w: '0%',   bg: 'transparent', t: '' },
+            { w: '25%',  bg: '#b02020',     t: 'Слабый' },
+            { w: '50%',  bg: '#f97316',     t: 'Средний' },
+            { w: '75%',  bg: '#F5C518',     t: 'Хороший' },
+            { w: '100%', bg: '#3DD68C',     t: 'Отличный' },
+        ];
+        const l = levels[Math.min(score, 4)];
+        fill.style.width      = l.w;
+        fill.style.background = l.bg;
+        hint.textContent      = l.t;
+        hint.style.color      = l.bg;
+    }
+</script>
+</body>
+</html>

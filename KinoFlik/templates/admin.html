@@ -1,0 +1,608 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  /* ── Reset / base ───────────────────────────────────────────── */
+  .adm-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+    color: #e0e0e0;
+    font-family: inherit;
+  }
+
+  /* ── Page title ─────────────────────────────────────────────── */
+  .adm-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .adm-title span.adm-crown {
+    font-size: 22px;
+  }
+
+  /* ── Stat cards ─────────────────────────────────────────────── */
+  .adm-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .adm-card {
+    background: #161616;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .adm-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #c02828, #b02020);
+  }
+  .adm-card-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .adm-card-count {
+    font-size: 34px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+  }
+  .adm-card-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #888;
+  }
+
+  /* ── TMDB import button ─────────────────────────────────────── */
+  .adm-tmdb-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #c02828 0%, #b02020 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    margin-bottom: 28px;
+    transition: opacity .2s;
+  }
+  .adm-tmdb-btn:hover { opacity: .85; color: #fff; text-decoration: none; }
+
+  /* ── Tab nav ────────────────────────────────────────────────── */
+  .adm-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding-bottom: 0;
+  }
+  .adm-tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #888;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 18px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: color .2s, border-color .2s;
+    margin-bottom: -1px;
+  }
+  .adm-tab-btn:hover { color: #ccc; }
+  .adm-tab-btn.active {
+    color: #fff;
+    border-bottom-color: #c02828;
+  }
+
+  /* ── Search input ───────────────────────────────────────────── */
+  .adm-search {
+    background: #161616;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    padding: 9px 14px;
+    width: 260px;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color .2s;
+  }
+  .adm-search:focus { border-color: #c02828; }
+  .adm-search::placeholder { color: #555; }
+
+  /* ── Table wrapper ──────────────────────────────────────────── */
+  .adm-table-wrap {
+    background: #161616;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+
+  /* ── Table ──────────────────────────────────────────────────── */
+  .adm-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+  }
+  .adm-table thead tr {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .adm-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #666;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .adm-table td {
+    padding: 11px 16px;
+    font-size: 13.5px;
+    color: #ccc;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    vertical-align: middle;
+  }
+  .adm-table tbody tr:last-child td { border-bottom: none; }
+  .adm-table tbody tr:hover td { background: rgba(255,255,255,.025); }
+
+  /* ── ID cell ────────────────────────────────────────────────── */
+  .adm-id {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #555;
+  }
+
+  /* ── Avatar ─────────────────────────────────────────────────── */
+  .adm-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,.12);
+    flex-shrink: 0;
+  }
+
+  /* ── Poster thumbnail ───────────────────────────────────────── */
+  .adm-poster {
+    width: 32px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,.1);
+    flex-shrink: 0;
+    background: #161616;
+  }
+
+  /* ── User name cell ─────────────────────────────────────────── */
+  .adm-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .adm-user-name { font-weight: 600; color: #e8e8e8; }
+  .adm-user-code { font-size: 11px; color: #555; margin-top: 2px; }
+
+  /* ── Badges ─────────────────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .badge-admin  { background: rgba(255,215,0,.15); color: #ffd700; border: 1px solid rgba(255,215,0,.3); }
+  .badge-user   { background: rgba(255,255,255,.06); color: #888; border: 1px solid rgba(255,255,255,.1); }
+  .badge-banned { background: rgba(224,80,80,.15); color: #e05050; border: 1px solid rgba(224,80,80,.3); }
+  .badge-active { background: rgba(61,214,124,.12); color: #3dd67c; border: 1px solid rgba(61,214,124,.25); }
+  .badge-rating { background: rgba(255,193,7,.13); color: #ffc107; border: 1px solid rgba(255,193,7,.25); font-size: 12px; padding: 2px 8px; }
+
+  /* ── Action buttons ─────────────────────────────────────────── */
+  .adm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .18s, background .18s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .adm-btn:hover { opacity: .8; }
+  .adm-btn-ban    { background: rgba(224,80,80,.12); border-color: rgba(224,80,80,.35); color: #e05050; }
+  .adm-btn-unban  { background: rgba(61,214,124,.1);  border-color: rgba(61,214,124,.3);  color: #3dd67c; }
+  .adm-btn-admin  { background: rgba(255,215,0,.1);   border-color: rgba(255,215,0,.3);   color: #ffd700; }
+  .adm-btn-delete { background: rgba(180,30,30,.15);  border-color: rgba(180,30,30,.4);   color: #e05050; }
+  .adm-btn-self   { font-size: 12px; color: #555; }
+
+  .adm-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+  /* ── Tab pane ───────────────────────────────────────────────── */
+  .adm-pane { display: none; }
+  .adm-pane.active { display: block; }
+</style>
+
+<div class="adm-wrap">
+
+  <!-- Page title -->
+  <h1 class="adm-title">
+    <span class="adm-crown">👑</span> Панель администратора
+  </h1>
+
+  <!-- Stat cards -->
+  <div class="adm-stats">
+    <div class="adm-card">
+      <div class="adm-card-icon">👥</div>
+      <div class="adm-card-count">{{ users|length }}</div>
+      <div class="adm-card-label">Пользователей</div>
+    </div>
+    <div class="adm-card">
+      <div class="adm-card-icon">🎬</div>
+      <div class="adm-card-count">{{ movies|length }}</div>
+      <div class="adm-card-label">Фильмов</div>
+    </div>
+    <div class="adm-card">
+      <div class="adm-card-icon">📺</div>
+      <div class="adm-card-count">{{ series|length }}</div>
+      <div class="adm-card-label">Сериалов</div>
+    </div>
+  </div>
+
+  <!-- TMDB import -->
+  <a href="/admin/import_tmdb" class="adm-tmdb-btn">
+    🌐 Импорт из TMDB
+  </a>
+
+  <!-- Tab navigation -->
+  <div class="adm-tabs">
+    <button class="adm-tab-btn active" onclick="showTab('users', this)">
+      👥 Пользователи
+      <span style="font-size:11px;color:#555;font-weight:400;">({{ users|length }})</span>
+    </button>
+    <button class="adm-tab-btn" onclick="showTab('movies', this)">
+      🎬 Фильмы
+      <span style="font-size:11px;color:#555;font-weight:400;">({{ movies|length }})</span>
+    </button>
+    <button class="adm-tab-btn" onclick="showTab('series', this)">
+      📺 Сериалы
+      <span style="font-size:11px;color:#555;font-weight:400;">({{ series|length }})</span>
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB: USERS
+  ════════════════════════════════════════════════════════════ -->
+  <div id="pane-users" class="adm-pane active">
+    <div class="adm-table-wrap">
+      <table class="adm-table" id="tbl-users">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Пользователь</th>
+            <th>Email</th>
+            <th>Роль</th>
+            <th>Статус</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <!-- ID zero-padded to 8 digits -->
+            <td class="adm-id">#{{ '%08d' % user.id }}</td>
+
+            <!-- Avatar + name -->
+            <td>
+              <div class="adm-user-cell">
+                <img class="adm-avatar"
+                     src="{{ user.profile_pic or '/static/img/default_avatar.png' }}"
+                     alt="{{ user.name }}">
+                <div>
+                  <div class="adm-user-name">{{ user.name }}</div>
+                  {% if user.friend_code %}
+                  <div class="adm-user-code">{{ user.friend_code }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+
+            <!-- Email -->
+            <td style="color:#aaa;">{{ user.email }}</td>
+
+            <!-- Role badge -->
+            <td>
+              {% if user.role == 'admin' %}
+              <span class="badge badge-admin">Admin</span>
+              {% else %}
+              <span class="badge badge-user">User</span>
+              {% endif %}
+            </td>
+
+            <!-- Status badge -->
+            <td>
+              {% if user.is_banned %}
+              <span class="badge badge-banned">⛔ Забанен</span>
+              {% else %}
+              <span class="badge badge-active">✓ Активен</span>
+              {% endif %}
+            </td>
+
+            <!-- Action buttons -->
+            <td>
+              {% if user.id != current_user_id %}
+              <div class="adm-actions">
+                {% if user.is_banned %}
+                <button class="adm-btn adm-btn-unban"
+                        onclick="toggleBan({{ user.id }}, 'unban')">
+                  ✓ Разбанить
+                </button>
+                {% else %}
+                <button class="adm-btn adm-btn-ban"
+                        onclick="toggleBan({{ user.id }}, 'ban')">
+                  ⛔ Забанить
+                </button>
+                {% endif %}
+
+                {% if user.role == 'admin' %}
+                <button class="adm-btn adm-btn-user"
+                        style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#aaa;"
+                        onclick="setRole('{{ user.name }}', 'user')">
+                  → User
+                </button>
+                {% else %}
+                <button class="adm-btn adm-btn-admin"
+                        onclick="setRole('{{ user.name }}', 'admin')">
+                  ★ Сделать Admin
+                </button>
+                {% endif %}
+              </div>
+              {% else %}
+              <span class="adm-btn-self">Это вы</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB: MOVIES
+  ════════════════════════════════════════════════════════════ -->
+  <div id="pane-movies" class="adm-pane">
+    <input class="adm-search"
+           type="text"
+           placeholder="🔍 Поиск по названию…"
+           oninput="filterTable(this, 'tbl-movies', 1)"
+           aria-label="Поиск фильмов">
+
+    <div class="adm-table-wrap">
+      <table class="adm-table" id="tbl-movies">
+        <thead>
+          <tr>
+            <th>Постер</th>
+            <th>Название</th>
+            <th>Год</th>
+            <th>Рейтинг</th>
+            <th>Жанр</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for movie in movies %}
+          <tr>
+            <td>
+              {% if movie.poster %}
+              <img class="adm-poster"
+                   src="{{ movie.poster }}"
+                   alt="{{ movie.title }}"
+                   onerror="this.style.opacity='.3'">
+              {% else %}
+              <div class="adm-poster" style="display:flex;align-items:center;justify-content:center;color:#333;font-size:18px;">🎬</div>
+              {% endif %}
+            </td>
+            <td style="color:#e8e8e8;font-weight:500;max-width:240px;">{{ movie.title }}</td>
+            <td style="color:#888;">{{ movie.year or '—' }}</td>
+            <td>
+              {% if movie.rating %}
+              <span class="badge badge-rating">★ {{ '%.1f'|format(movie.rating) }}</span>
+              {% else %}
+              <span style="color:#444;">—</span>
+              {% endif %}
+            </td>
+            <td style="color:#777;font-size:12px;">{{ movie.genre or '—' }}</td>
+            <td>
+              <button class="adm-btn adm-btn-delete"
+                      onclick="deleteMovie({{ movie.id }}, '{{ movie.title|replace("'","\\'")|e }}')">
+                🗑 Удалить
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB: SERIES
+  ════════════════════════════════════════════════════════════ -->
+  <div id="pane-series" class="adm-pane">
+    <input class="adm-search"
+           type="text"
+           placeholder="🔍 Поиск по названию…"
+           oninput="filterTable(this, 'tbl-series', 1)"
+           aria-label="Поиск сериалов">
+
+    <div class="adm-table-wrap">
+      <table class="adm-table" id="tbl-series">
+        <thead>
+          <tr>
+            <th>Постер</th>
+            <th>Название</th>
+            <th>Год</th>
+            <th>Рейтинг</th>
+            <th>Жанр</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in series %}
+          <tr>
+            <td>
+              {% if s.poster %}
+              <img class="adm-poster"
+                   src="{{ s.poster }}"
+                   alt="{{ s.title }}"
+                   onerror="this.style.opacity='.3'">
+              {% else %}
+              <div class="adm-poster" style="display:flex;align-items:center;justify-content:center;color:#333;font-size:18px;">📺</div>
+              {% endif %}
+            </td>
+            <td style="color:#e8e8e8;font-weight:500;max-width:240px;">{{ s.title }}</td>
+            <td style="color:#888;">{{ s.year or '—' }}</td>
+            <td>
+              {% if s.rating %}
+              <span class="badge badge-rating">★ {{ '%.1f'|format(s.rating) }}</span>
+              {% else %}
+              <span style="color:#444;">—</span>
+              {% endif %}
+            </td>
+            <td style="color:#777;font-size:12px;">{{ s.genre or '—' }}</td>
+            <td>
+              <button class="adm-btn adm-btn-delete"
+                      onclick="deleteSeries({{ s.id }}, '{{ s.title|replace("'","\\'")|e }}')">
+                🗑 Удалить
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /adm-wrap -->
+
+<script>
+/* ── Tab switching ────────────────────────────────────────────── */
+function showTab(name, btn) {
+  document.querySelectorAll('.adm-pane').forEach(function(p) {
+    p.classList.remove('active');
+  });
+  document.querySelectorAll('.adm-tab-btn').forEach(function(b) {
+    b.classList.remove('active');
+  });
+  document.getElementById('pane-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── Client-side table search ─────────────────────────────────── */
+function filterTable(input, tableId, colIndex) {
+  var q = input.value.toLowerCase().trim();
+  var rows = document.getElementById(tableId).querySelectorAll('tbody tr');
+  rows.forEach(function(row) {
+    var cell = row.cells[colIndex];
+    var text = cell ? cell.textContent.toLowerCase() : '';
+    row.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+  });
+}
+
+/* ── Ban / Unban ──────────────────────────────────────────────── */
+function toggleBan(userId, action) {
+  var msg = action === 'ban'
+    ? 'Вы уверены, что хотите забанить этого пользователя?'
+    : 'Разбанить пользователя?';
+  if (!confirm(msg)) return;
+
+  fetch('/admin/ban_user', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId, action: action })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) { location.reload(); }
+    else { alert('Ошибка: ' + (data.message || 'неизвестная ошибка')); }
+  });
+}
+
+/* ── Set role ─────────────────────────────────────────────────── */
+function setRole(username, role) {
+  var label = role === 'admin' ? 'администратора' : 'обычного пользователя';
+  if (!confirm('Назначить «' + username + '» роль ' + label + '?')) return;
+
+  fetch('/admin/set_role', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: username, role: role })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) { location.reload(); }
+    else { alert('Ошибка: ' + (data.message || 'неизвестная ошибка')); }
+  });
+}
+
+/* ── Delete movie ─────────────────────────────────────────────── */
+function deleteMovie(movieId, title) {
+  if (!confirm('Удалить фильм «' + title + '»? Это действие необратимо.')) return;
+
+  fetch('/admin/delete_movie', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ movie_id: movieId })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) { location.reload(); }
+    else { alert('Ошибка: ' + (data.message || 'неизвестная ошибка')); }
+  });
+}
+
+/* ── Delete series ────────────────────────────────────────────── */
+function deleteSeries(seriesId, title) {
+  if (!confirm('Удалить сериал «' + title + '»? Это действие необратимо.')) return;
+
+  fetch('/admin/delete_series', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ series_id: seriesId })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) { location.reload(); }
+    else { alert('Ошибка: ' + (data.message || 'неизвестная ошибка')); }
+  });
+}
+</script>
+{% endblock %}

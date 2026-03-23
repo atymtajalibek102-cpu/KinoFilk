@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KinoFlik — онлайн‑кинотеатр без рекламы: новинки кино, популярные сериалы, ТВ и спорт в высоком качестве.">
+    <meta name="theme-color" content="#000000">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="KinoFlik — кино без рекламы">
+    <meta property="og:description" content="Смотри фильмы, сериалы и ТВ‑каналы без рекламы в одном месте.">
+    <meta property="og:url" content="{{ request.url_root|trim('/') }}">
+    <title>{% block title %}KinoFlik - Кино без рекламы{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/kp_features.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+    <style>
+        /* ── Global layout ── */
+        body { background: #000; }
+        .layout-wrapper { display: flex; min-height: 100vh; padding-top: 64px; }
+
+        /* ── Sidebar: sticky, collapses to 66px, expands on hover ── */
+        .sidebar {
+            position: sticky;
+            top: 64px;
+            height: calc(100vh - 64px);
+            flex-shrink: 0;
+            width: 66px;
+            overflow: hidden;
+            transition: width 0.28s cubic-bezier(0.4,0,0.2,1);
+            background: #080808;
+            border-right: 1px solid #161616;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 0;
+        }
+        .sidebar:hover { width: 230px; }
+
+        /* ── Page content pushes right ── */
+        .page-content {
+            flex: 1;
+            min-width: 0;
+            overflow-x: hidden;
+            margin-left: 0 !important;
+        }
+
+        /* ── Sidebar logo area ── */
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px 16px;
+            border-bottom: 1px solid #161616;
+            margin-bottom: 8px;
+            text-decoration: none;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .sidebar-logo svg { flex-shrink: 0; }
+        .sidebar-logo-text {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 900;
+            font-size: 14px;
+            color: #f0f0f0;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .sidebar-logo-text span { color: #c02828; }
+        .sidebar:hover .sidebar-logo-text { opacity: 1; }
+
+        /* ── Nav links ── */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0 8px;
+            scrollbar-width: none;
+        }
+        .sidebar-nav::-webkit-scrollbar { display: none; }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 10px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #555;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar-link::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: #c02828;
+            opacity: 0;
+            border-radius: 0 2px 2px 0;
+            transition: opacity 0.2s;
+        }
+        .sidebar-link:hover { color: #f0f0f0; background: rgba(255,255,255,.04); }
+        .sidebar-link.active { color: #c02828; background: rgba(192,40,40,0.08); }
+        .sidebar-link.active::before { opacity: 1; }
+        .sidebar-link i {
+            width: 20px; text-align: center;
+            font-size: 1rem; flex-shrink: 0;
+        }
+        .sidebar-link span {
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .sidebar:hover .sidebar-link span { opacity: 1; }
+
+        /* ── Sidebar user area ── */
+        .sidebar-user {
+            padding: 12px 8px 0;
+            border-top: 1px solid #161616;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .sidebar-user-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,.03);
+            text-decoration: none;
+            color: #f0f0f0;
+        }
+        .sidebar-user-inner img {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #c02828;
+            flex-shrink: 0;
+        }
+        .sidebar-user-info {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .sidebar:hover .sidebar-user-info { opacity: 1; }
+        .sidebar-user-name {
+            font-size: 12px; font-weight: 600;
+            color: #f0f0f0; white-space: nowrap;
+        }
+        .sidebar-user-plan {
+            font-size: 10px; color: #444;
+        }
+
+        /* ── Topbar ── */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 64px;
+            background: rgba(0,0,0,0.97);
+            border-bottom: 1px solid #161616;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 18px;
+            gap: 16px;
+        }
+        .top-bar-left, .top-bar-right {
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        /* Avatar circle in topbar */
+        .profile-icon {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 2px solid #c02828;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .profile-icon img {
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
+        }
+
+        /* Profile dropdown */
+        .profile-menu {
+            position: absolute;
+            right: 0; top: calc(100% + 8px);
+            min-width: 200px;
+            background: #0e0e0e;
+            border: 1px solid #222;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.8);
+            padding: 6px 0;
+            opacity: 0; visibility: hidden;
+            transform: translateY(-6px);
+            transition: all 0.2s;
+            z-index: 20;
+        }
+        .profile-icon:hover .profile-menu {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+        .pp-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px; border-bottom: 1px solid #1a1a1a;
+        }
+        .pp-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .pp-name { font-size: 13px; font-weight: 600; color: #f0f0f0; }
+        .pp-uid { font-size: 10px; color: #444; margin-top: 2px; }
+        .pp-role { font-size: 11px; color: #c02828; margin-top: 2px; }
+        .pp-menu { padding: 4px 0; }
+        .pp-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px;
+            color: #aaa; font-size: 13px; text-decoration: none;
+            transition: all 0.15s;
+        }
+        .pp-item:hover { background: rgba(255,255,255,.04); color: #f0f0f0; }
+        .pp-item.danger:hover { color: #e04040; }
+        .pp-item.premium { color: #c02828; }
+        .pp-item i { width: 16px; text-align: center; }
+        .pp-divider { height: 1px; background: #1a1a1a; margin: 4px 0; }
+
+        /* ── Search wrapper in topbar ── */
+        .search-wrapper {
+            position: relative; width: 38px; height: 38px;
+        }
+        .search-wrapper > i {
+            position: absolute; right: 0; top: 0;
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: #111; border: 1px solid #1a1a1a;
+            color: #555; pointer-events: none; transition: all 0.2s;
+        }
+        .search-wrapper input {
+            position: absolute; right: 0; top: 0;
+            height: 38px; width: 38px; opacity: 0;
+            padding: 0 14px 0 40px;
+            background: #111; border: 1px solid #1a1a1a;
+            border-radius: 999px; color: #f0f0f0;
+            font-size: .9rem;
+            transition: width 0.3s, opacity 0.3s, border-color 0.2s;
+        }
+        .search-wrapper input::placeholder { color: #444; }
+        .search-wrapper:hover input, .search-wrapper input:focus {
+            width: clamp(240px, 30vw, 420px);
+            opacity: 1; border-color: #c02828;
+        }
+        .search-wrapper:hover > i { color: #c02828; border-color: #c02828; background: rgba(192,40,40,.08); }
+
+        /* Search results dropdown */
+        .search-results {
+            position: absolute; right: 0; top: calc(100% + 8px);
+            width: clamp(240px, 30vw, 420px);
+            background: #0e0e0e; border: 1px solid #222;
+            border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.8);
+            padding: 6px 0; max-height: 360px; overflow-y: auto;
+            opacity: 0; visibility: hidden; transform: translateY(-6px);
+            transition: all 0.2s; z-index: 30;
+        }
+        .search-wrapper:hover .search-results:not(:empty),
+        .search-wrapper:focus-within .search-results:not(:empty) {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+        .search-results:empty { display: none !important; }
+        .search-result-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; color: #f0f0f0; transition: background 0.15s;
+        }
+        .search-result-item:hover { background: rgba(255,255,255,.04); }
+
+        /* Logo in topbar */
+        .logo-link .logo {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 900; font-size: 1.1rem;
+        }
+        .logo-link .logo span { color: #c02828; }
+
+        /* ── Mobile bottom nav ── */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 60px; background: #080808;
+            border-top: 1px solid #161616;
+            z-index: 1050; align-items: stretch;
+            transition: transform .3s ease;
+        }
+        .mbn-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 3px; color: #444; text-decoration: none;
+            font-size: .6rem; font-weight: 600;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .mbn-item i { font-size: 1.1rem; }
+        .mbn-item.active { color: #c02828; }
+        .mbn-avatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 1px solid #333; }
+        .mbn-item.active .mbn-avatar { border-color: #c02828; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+            background: #0e0e0e; border: 1px solid #222;
+            padding: 10px 20px; border-radius: 8px;
+            font-size: 13px; font-weight: 600; color: #f0f0f0;
+            box-shadow: 0 8px 32px rgba(0,0,0,.6);
+            transition: transform 0.3s; z-index: 9999;
+            white-space: nowrap;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.error { border-color: #c02828; color: #e04040; }
+
+        /* Scroll to top */
+        .scroll-to-top {
+            position: fixed; bottom: 80px; right: 20px;
+            width: 36px; height: 36px;
+            background: #111; border: 1px solid #222;
+            border-radius: 50%; color: #555;
+            display: none; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 500; transition: all 0.2s;
+        }
+        .scroll-to-top.show { display: flex; }
+        .scroll-to-top:hover { background: rgba(192,40,40,.15); border-color: #c02828; color: #c02828; }
+
+        /* Avatar upload overlay */
+        #avatarUploadOverlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,.8);
+            z-index: 99999; align-items: center; justify-content: center;
+            flex-direction: column; gap: 14px; color: #fff; font-size: 16px; font-weight: 600;
+        }
+        #avatarUploadOverlay.show { display: flex; }
+        #avatarUploadOverlay .spin {
+            width: 44px; height: 44px; border: 4px solid rgba(255,255,255,.1);
+            border-top-color: #c02828; border-radius: 50%;
+            animation: _spin .8s linear infinite;
+        }
+        @keyframes _spin { to { transform: rotate(360deg); } }
+
+        /* Mobile: hide sidebar, show bottom nav */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .mobile-bottom-nav { display: flex; }
+            .layout-wrapper { padding-top: 64px; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div id="avatarUploadOverlay">
+    <div class="spin"></div>
+    <span>Загрузка фото...</span>
+</div>
+
+<!-- ── Topbar ── -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="/" class="logo-link"><h1 class="logo">Kino<span>Flik</span></h1></a>
+    </div>
+    <div class="top-bar-right">
+        <!-- Search -->
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Поиск фильмов и сериалов...">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <!-- Avatar only -->
+        <div class="profile-icon" id="navAvatarWrap">
+          {% if session.get('user_id') %}
+          <a href="/profile" style="display:block;width:100%;height:100%;border-radius:50%;">
+            <img id="navAvatarImg"
+                 src="{{ session.get('avatar_url') or 'https://i.pravatar.cc/150?u='~session.get('user_id') }}"
+                 alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">
+          </a>
+          {% else %}
+          <a href="/login" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:#555;">
+            <i class="fas fa-user" style="font-size:16px;"></i>
+          </a>
+          {% endif %}
+
+          {% if request.path != '/profile' %}
+          <div class="profile-menu">
+            {% if session.get('user_id') %}
+            <div class="pp-header">
+              <img id="ppHeaderImg"
+                   src="{{ session.get('avatar_url') or 'https://i.pravatar.cc/150?u='~session.get('user_id') }}"
+                   alt="">
+              <div>
+                <div class="pp-name">{{ session.get('user_name') or 'Пользователь' }}</div>
+                <div class="pp-uid">ID: {{ current_user_id }}</div>
+                {% if is_admin %}<div class="pp-role"><i class="fas fa-shield-alt"></i> Администратор</div>{% endif %}
+              </div>
+            </div>
+            <div class="pp-menu">
+              <a href="/profile"         class="pp-item"><i class="fas fa-user"></i> Мой профиль</a>
+              <a href="/profile#history" class="pp-item"><i class="fas fa-history"></i> История</a>
+              <a href="/profile#favorites" class="pp-item"><i class="fas fa-heart"></i> Избранное</a>
+              {% if is_admin %}
+              <div class="pp-divider"></div>
+              <a href="/admin" class="pp-item"><i class="fas fa-shield-alt"></i> Админ-панель</a>
+              {% endif %}
+              <div class="pp-divider"></div>
+              <a href="/logout" class="pp-item danger"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+            </div>
+            {% else %}
+            <div class="pp-menu">
+              <a href="/login"            class="pp-item"><i class="fas fa-sign-in-alt"></i> Войти</a>
+              <a href="/login?register=1" class="pp-item"><i class="fas fa-user-plus"></i> Регистрация</a>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ── Layout: sidebar + content ── -->
+<div class="layout-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Logo (icon only when collapsed) -->
+    <a href="/" class="sidebar-logo">
+      <svg viewBox="0 0 32 32" width="28" height="28" style="flex-shrink:0;">
+        <polygon points="16,3 28,11 28,21 16,29 4,21 4,11" fill="#c02828" opacity="0.9"/>
+        <polygon points="16,3 28,11 16,14 4,11" fill="#e04040" opacity="0.8"/>
+        <polygon points="4,11 16,14 4,21" fill="#a02020" opacity="0.9"/>
+        <polygon points="28,11 16,14 28,21" fill="#e05050" opacity="0.7"/>
+        <polygon points="4,21 16,14 16,29" fill="#901818" opacity="0.9"/>
+        <polygon points="28,21 16,14 16,29" fill="#c03030" opacity="0.8"/>
+        <polygon points="10,4 22,4 24,9 8,9" fill="white" opacity="0.12"/>
+      </svg>
+      <span class="sidebar-logo-text">Kino<span>Flik</span></span>
+    </a>
+
+    <nav class="sidebar-nav">
+      <a href="/"       class="sidebar-link {% if request.path == '/' %}active{% endif %}">
+        <i class="fas fa-home"></i><span>Главная</span>
+      </a>
+      <a href="/movie"  class="sidebar-link {% if '/movie' in request.path and '/movie/' not in request.path %}active{% elif request.path.startswith('/movie') %}active{% endif %}">
+        <i class="fas fa-film"></i><span>Фильмы</span>
+      </a>
+      <a href="/series" class="sidebar-link {% if '/series' in request.path %}active{% endif %}">
+        <i class="fas fa-tv"></i><span>Сериалы</span>
+      </a>
+      <a href="/tv"     class="sidebar-link {% if request.path == '/tv' %}active{% endif %}">
+        <i class="fas fa-satellite-dish"></i><span>ТВ каналы</span>
+      </a>
+      <a href="/sport"  class="sidebar-link {% if '/sport' in request.path %}active{% endif %}">
+        <i class="fas fa-trophy"></i><span>Спорт</span>
+      </a>
+      <a href="/search" class="sidebar-link {% if '/search' in request.path %}active{% endif %}">
+        <i class="fas fa-search"></i><span>Поиск</span>
+      </a>
+      <a href="/ai-pick" class="sidebar-link {% if '/ai-pick' in request.path %}active{% endif %}">
+        <i class="fas fa-magic"></i><span>AI Подбор</span>
+      </a>
+      <a href="/profile" class="sidebar-link {% if '/profile' in request.path %}active{% endif %}">
+        <i class="fas fa-user"></i><span>Профиль</span>
+      </a>
+      {% if is_admin %}
+      <a href="/admin"  class="sidebar-link {% if '/admin' in request.path %}active{% endif %}">
+        <i class="fas fa-shield-alt"></i><span>Админ</span>
+      </a>
+      {% endif %}
+    </nav>
+
+    <!-- User area at bottom -->
+    {% if session.get('user_id') %}
+    <div class="sidebar-user">
+      <a href="/profile" class="sidebar-user-inner">
+        <img src="{{ session.get('avatar_url') or 'https://i.pravatar.cc/150?u='~session.get('user_id') }}" alt="">
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">{{ session.get('user_name') or 'Профиль' }}</div>
+          <div class="sidebar-user-plan">KinoFlik</div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+  </aside>
+
+  <!-- Page content -->
+  <div class="page-content" id="pageContent">
+    {% block content %}{% endblock %}
+  </div>
+
+</div><!-- /.layout-wrapper -->
+
+<!-- Mobile bottom nav -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <a href="/"       class="mbn-item {% if request.path == '/' %}active{% endif %}">
+        <i class="fas fa-home"></i><span>Главная</span>
+    </a>
+    <a href="/movie"  class="mbn-item {% if '/movie' in request.path %}active{% endif %}">
+        <i class="fas fa-film"></i><span>Фильмы</span>
+    </a>
+    <a href="/series" class="mbn-item {% if '/series' in request.path %}active{% endif %}">
+        <i class="fas fa-tv"></i><span>Сериалы</span>
+    </a>
+    <a href="/sport"  class="mbn-item {% if '/sport' in request.path %}active{% endif %}">
+        <i class="fas fa-futbol"></i><span>Спорт</span>
+    </a>
+    <a href="/profile" class="mbn-item {% if '/profile' in request.path %}active{% endif %}">
+        {% if session.get('avatar_url') %}
+        <img src="{{ session.get('avatar_url') }}" alt="me" class="mbn-avatar">
+        {% else %}
+        <i class="fas fa-user"></i>
+        {% endif %}
+        <span>Профиль</span>
+    </a>
+</nav>
+
+<div class="toast" id="toast"></div>
+<button class="scroll-to-top" id="scrollToTop" title="Наверх"><i class="fas fa-chevron-up"></i></button>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script>
+// Mobile scroll hide/show
+(function() {
+    var nav = document.getElementById('mobileBottomNav');
+    if (!nav) return;
+    var lastY = 0;
+    window.addEventListener('scroll', function() {
+        var y = window.scrollY;
+        if (y > lastY + 10 && y > 100) nav.style.transform = 'translateY(100%)';
+        else if (y < lastY - 10)       nav.style.transform = 'translateY(0)';
+        lastY = y;
+    }, { passive: true });
+})();
+
+// Search
+var si = document.getElementById('searchInput');
+if (si) {
+    si.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim())
+            window.location.href = '/search?q=' + encodeURIComponent(this.value.trim());
+    });
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        var s = document.getElementById('searchInput');
+        if (s) { s.focus(); s.select(); }
+    }
+    if (e.key === 'Escape') {
+        var sr = document.getElementById('searchResults');
+        if (sr) { sr.classList.remove('show'); sr.innerHTML = ''; }
+    }
+});
+
+// Toast helper
+window.showToast = function(msg, type) {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || 'success');
+    setTimeout(function() { t.classList.remove('show'); }, 3000);
+};
+
+// Scroll to top
+var toTop = document.getElementById('scrollToTop');
+if (toTop) {
+    window.addEventListener('scroll', function() {
+        toTop.classList.toggle('show', window.scrollY > 400);
+    }, { passive: true });
+    toTop.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
+
+// Avatar upload
+(function() {
+    var input   = document.getElementById('navAvatarInput');
+    var overlay = document.getElementById('avatarUploadOverlay');
+    if (!input) return;
+    input.addEventListener('change', function() {
+        if (!this.files || !this.files[0]) return;
+        if (overlay) overlay.classList.add('show');
+        var fd = new FormData();
+        fd.append('avatar', this.files[0]);
+        fetch('/upload_avatar', { method: 'POST', body: fd })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (overlay) overlay.classList.remove('show');
+                if (d.success) {
+                    var ts = '?t=' + Date.now();
+                    ['navAvatarImg', 'ppHeaderImg', 'avatarImg'].forEach(function(id) {
+                        var el = document.getElementById(id);
+                        if (el) el.src = d.url + ts;
+                    });
+                    var mbnAvatar = document.querySelector('.mbn-avatar');
+                    if (mbnAvatar) mbnAvatar.src = d.url + ts;
+                    showToast('Фото обновлено!', 'success');
+                } else {
+                    showToast(d.message || 'Ошибка загрузки', 'error');
+                }
+            })
+            .catch(function() {
+                if (overlay) overlay.classList.remove('show');
+                showToast('Ошибка сети', 'error');
+            });
+        this.value = '';
+    });
+})();
+</script>
+
+<script src="{{ url_for('static', filename='js/kp_features.js') }}"></script>
+<script src="{{ url_for('static', filename='js/live-search.js') }}"></script>
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

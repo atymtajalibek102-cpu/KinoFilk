@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}Чат — KinoFlik{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-wrapper {
+    display: flex;
+    height: calc(100vh - 100px);
+    max-height: 800px;
+    max-width: 1200px;
+    margin: 20px auto;
+    background: var(--bg1);
+    border: 1px solid var(--brd);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.chat-sidebar {
+    width: 320px;
+    background: var(--bg2);
+    border-right: 1px solid var(--brd);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--brd);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-header h2 { font-size: 18px; font-weight: 800; }
+
+.btn-create-group {
+    background: rgba(90,150,120,0.15);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-create-group:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.list-title {
+    font-size: 12px;
+    color: var(--txt3);
+    margin: 15px 10px 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.chat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 4px;
+}
+
+.chat-item:hover { background: var(--bg3); }
+.chat-item.active { background: rgba(90,150,120,0.15); border: 1px solid rgba(90,150,120,0.3); }
+
+.chat-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.group-ava { background: linear-gradient(135deg, var(--accent), #440000); color: #fff; }
+
+.chat-name { font-size: 14px; font-weight: 600; flex: 1; }
+.chat-unread { background: var(--accent); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg1);
+}
+
+.chat-main-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--brd);
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.messages-area {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.msg { display: flex; flex-direction: column; max-width: 70%; }
+.msg.mine { align-self: flex-end; }
+.msg.theirs { align-self: flex-start; }
+
+.msg-sender {
+    font-size: 11px;
+    color: var(--txt3);
+    margin-bottom: 4px;
+    margin-left: 12px;
+}
+
+.msg-bubble {
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.msg.mine .msg-bubble { background: #b02020; color: #fff; border-bottom-right-radius: 4px; }
+.msg.theirs .msg-bubble { background: var(--bg2); border: 1px solid var(--brd); color: var(--txt1); border-bottom-left-radius: 4px; }
+
+.chat-input {
+    padding: 20px;
+    border-top: 1px solid var(--brd);
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 24px;
+    border: 1px solid var(--brd2);
+    background: var(--bg2);
+    color: var(--txt1);
+    outline: none;
+}
+.chat-input input:focus { border-color: var(--accent); }
+
+.chat-input button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 16px;
+    transition: 0.2s;
+}
+.chat-input button:hover { transform: scale(1.05); }
+
+/* Модальное окно создания группы */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+    background: var(--bg1); padding: 24px; border-radius: 16px; width: 400px;
+    border: 1px solid var(--brd); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+.modal-box h3 { margin-bottom: 16px; font-weight: 800; }
+.modal-box input.text-inp {
+    width: 100%; padding: 12px 16px; margin-bottom: 16px; background: var(--bg2);
+    border: 1px solid var(--brd); border-radius: 10px; color: #fff; outline:none;
+}
+.friend-select { max-height: 150px; overflow-y: auto; margin-bottom: 16px; background: var(--bg2); padding: 10px; border-radius: 10px; border: 1px solid var(--brd); }
+.friend-select label { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; font-size: 14px; }
+.friend-select input { accent-color: var(--accent); width: 16px; height: 16px; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-cancel { padding: 10px 16px; border-radius: 10px; color: var(--txt2); }
+.btn-submit { padding: 10px 16px; border-radius: 10px; background: var(--accent); color: #fff; font-weight: bold; }
+
+.empty-chat { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--txt3); }
+.empty-chat i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-wrapper">
+    <div class="chat-sidebar">
+        <div class="sidebar-header">
+            <h2>Чат</h2>
+            <button class="btn-create-group" onclick="document.getElementById('groupModal').classList.add('show')">
+                <i class="fas fa-plus"></i> Группа
+            </button>
+        </div>
+        
+        <div class="chat-list">
+            {% if groups %}
+            <div class="list-title">Общие группы</div>
+            {% for g in groups %}
+            <div class="chat-item" onclick="loadChat('group', {{ g.id }}, '{{ g.name }}')">
+                <div class="chat-avatar group-ava"><i class="fas fa-users"></i></div>
+                <div class="chat-name">{{ g.name }}</div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="list-title">Друзья</div>
+            {% if friends %}
+                {% for f in friends %}
+                <div class="chat-item" onclick="loadChat('user', {{ f.id }}, '{{ f.name }}')">
+                    <div class="chat-avatar">
+                        <img src="{{ f.profile_pic if f.profile_pic else '/static/img/no_avatar.svg' }}" onerror="this.style.display='none'">
+                    </div>
+                    <div class="chat-name">{{ f.name }}</div>
+                    {% if f.unread > 0 %}
+                    <div class="chat-unread">{{ f.unread }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="padding: 10px; font-size: 13px; color: var(--txt3); text-align: center;">
+                    У вас пока нет друзей. Добавьте их в профиле по ID!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="chat-main" id="chatMain" style="display: none;">
+        <div class="chat-main-header">
+            <span id="chatTitle">Имя</span>
+        </div>
+        <div class="messages-area" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Написать сообщение..." onkeypress="if(event.key==='Enter')sendMessage()">
+            <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+    
+    <div class="empty-chat" id="emptyChat">
+        <i class="fas fa-comments"></i>
+        <h3>Выберите чат</h3>
+        <p>Выберите друга или группу из списка слева</p>
+    </div>
+</div>
+
+<div class="modal-overlay" id="groupModal" onclick="if(event.target===this) this.classList.remove('show')">
+    <div class="modal-box">
+        <h3>Создать группу</h3>
+        <input type="text" class="text-inp" id="groupName" placeholder="Название группы...">
+        
+        <div class="list-title" style="margin-left: 0;">Кого добавить:</div>
+        <div class="friend-select">
+            {% for f in friends %}
+            <label><input type="checkbox" class="group-friend-cb" value="{{ f.id }}"> {{ f.name }}</label>
+            {% else %}
+            <div style="font-size:12px; color:#666;">Нет друзей для добавления</div>
+            {% endfor %}
+        </div>
+
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="document.getElementById('groupModal').classList.remove('show')">Отмена</button>
+            <button class="btn-submit" onclick="createGroup()">Создать</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentType = null;
+let currentId = null;
+
+function loadChat(type, id, title) {
+    currentType = type;
+    currentId = id;
+    
+    document.getElementById('emptyChat').style.display = 'none';
+    document.getElementById('chatMain').style.display = 'flex';
+    document.getElementById('chatTitle').textContent = title;
+    
+    // Подсветка активного чата
+    document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    fetch(`/api/messages/${type}/${id}`)
+    .then(r => r.json())
+    .then(msgs => {
+        const box = document.getElementById('chatMessages');
+        box.innerHTML = msgs.map(m => {
+            const isMine = m.sender_id === {{ current_user_id }};
+            return `
+                <div class="msg ${isMine ? 'mine' : 'theirs'}">
+                    ${!isMine && type === 'group' ? `<div class="msg-sender">${m.sender_name}</div>` : ''}
+                    <div class="msg-bubble">${m.content}</div>
+                </div>
+            `;
+        }).join('');
+        box.scrollTop = box.scrollHeight;
+    });
+}
+
+function sendMessage() {
+    const inp = document.getElementById('chatInput');
+    const text = inp.value.trim();
+    if (!text || !currentId) return;
+
+    const payload = { content: text };
+    if (currentType === 'group') payload.group_id = currentId;
+    else payload.receiver_id = currentId;
+
+    fetch('/api/messages/send', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    }).then(r => r.json()).then(d => {
+        if(d.success) {
+            inp.value = '';
+            // Перезагружаем сообщения для обновления вида
+            fetch(`/api/messages/${currentType}/${currentId}`)
+            .then(r=>r.json()).then(msgs => {
+                const box = document.getElementById('chatMessages');
+                box.innerHTML = msgs.map(m => {
+                    const isMine = m.sender_id === {{ current_user_id }};
+                    return `<div class="msg ${isMine ? 'mine' : 'theirs'}">
+                        ${!isMine && currentType === 'group' ? `<div class="msg-sender">${m.sender_name}</div>` : ''}
+                        <div class="msg-bubble">${m.content}</div></div>`;
+                }).join('');
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+    });
+}
+
+function createGroup() {
+    const name = document.getElementById('groupName').value.trim();
+    if (!name) return alert('Введите название группы!');
+    
+    const cbs = document.querySelectorAll('.group-friend-cb:checked');
+    const friend_ids = Array.from(cbs).map(cb => parseInt(cb.value));
+
+    fetch('/api/groups/create', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name: name, friend_ids: friend_ids})
+    }).then(r => r.json()).then(d => {
+        if(d.success) {
+            location.reload(); // Перезагружаем, чтобы группа появилась в боковом меню
+        } else {
+            alert(d.message || 'Ошибка создания группы');
+        }
+    });
+}
+
+// Автоматически обновлять открытый чат каждые 5 секунд
+setInterval(() => {
+    if (currentType && currentId) {
+        const box = document.getElementById('chatMessages');
+        const isAtBottom = box.scrollHeight - box.scrollTop === box.clientHeight;
+        
+        fetch(`/api/messages/${currentType}/${currentId}`)
+        .then(r => r.json())
+        .then(msgs => {
+            box.innerHTML = msgs.map(m => {
+                const isMine = m.sender_id === {{ current_user_id }};
+                return `<div class="msg ${isMine ? 'mine' : 'theirs'}">
+                    ${!isMine && currentType === 'group' ? `<div class="msg-sender">${m.sender_name}</div>` : ''}
+                    <div class="msg-bubble">${m.content}</div></div>`;
+            }).join('');
+            if (isAtBottom) box.scrollTop = box.scrollHeight;
+        });
+    }
+}, 5000);
+</script>
+{% endblock %}

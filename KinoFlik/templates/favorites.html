@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container section">
+    <div class="section-header">
+        <h2 class="section-title">Избранное</h2>
+    </div>
+
+    {% if favorites %}
+    <div class="cards-grid">
+        {% for movie in favorites %}
+        <div class="movie-card" onclick="window.location.href='/movie/{{ movie.id }}'">
+            <div class="movie-poster-wrap">
+                <img src="/static/posters/{{ movie.poster }}" alt="{{ movie.title }}" class="movie-img" loading="lazy">
+                <div class="movie-badge-top">{{ movie.rating }}</div>
+
+                <!-- Кнопка удаления -->
+                <button class="remove-fav-btn" onclick="removeFromFavorites(event, '{{ movie.id }}')"
+                    title="Удалить из избранного">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="movie-meta-bottom">
+                <div class="movie-title">{{ movie.title }}</div>
+                <div class="movie-year">{{ movie.year }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <i class="fas fa-heart-broken" style="font-size: 48px; margin-bottom: 20px;"></i>
+        <p>Список избранного пуст</p>
+        <a href="/" class="btn btn-primary" style="margin-top: 20px;">На главную</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .remove-fav-btn {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 5;
+    }
+
+    .remove-fav-btn:hover {
+        background: #c02828;
+        border-color: #c02828;
+        transform: scale(1.1);
+    }
+</style>
+
+<script>
+    function removeFromFavorites(event, movieId) {
+        event.stopPropagation(); // Чтобы не сработал клик по карточке
+        if (!confirm('Удалить фильм из избранного?')) return;
+
+        fetch('/ajax/favorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ movie_id: movieId })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'removed' || data.status === 'added') {
+                    location.reload();
+                }
+            });
+    }
+</script>
+{% endblock %}

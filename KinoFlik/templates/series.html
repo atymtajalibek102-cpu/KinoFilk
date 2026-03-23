@@ -1,0 +1,494 @@
+{% extends "base.html" %}
+{% block title %}Сериалы — KinoFlik{% endblock %}
+
+{% block extra_css %}
+<style>
+.sp { padding: 32px 60px 100px; }
+
+.sp-header { margin-bottom: 28px; }
+.sp-header h1 {
+    font-size: 32px; font-weight: 900; color: #fff;
+    font-family:'Unbounded',sans-serif;
+    position: relative; padding-bottom: 14px; margin-bottom: 6px;
+}
+.sp-header h1::after {
+    content: ''; position: absolute; bottom: 0; left: 0;
+    width: 80px; height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+    border-radius: 3px;
+}
+.sp-header p { font-size: 13px; color: rgba(255,255,255,.3); margin-top: 10px; }
+
+/* Жанры */
+.sp-genres { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 36px; }
+.sp-genre {
+    padding: 8px 18px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.04);
+    color: rgba(255,255,255,.5);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+}
+.sp-genre:hover, .sp-genre.active {
+    background: rgba(192,40,40,.1);
+    border-color: rgba(192,40,40,.3);
+    color: var(--accent);
+}
+
+/* Секции */
+.sp-section { margin-bottom: 52px; }
+.sp-section-title {
+    font-size: 22px; font-weight: 800; color: #fff;
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 12px;
+}
+.sp-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: rgba(255,255,255,.08);
+}
+
+/* Сетка карточек */
+.sp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 14px;
+}
+
+/* ══ Карточка ══ */
+.sc {
+    text-decoration: none; color: #fff; display: block;
+    background: #161616; border-radius: 10px; overflow: hidden;
+    transition: transform .28s cubic-bezier(.4,0,.2,1), box-shadow .28s ease;
+    will-change: transform;
+}
+.sc:hover {
+    transform: scale(1.05);
+    box-shadow: 0 16px 48px rgba(0,0,0,.7);
+    z-index: 2; position: relative;
+}
+.sc__poster {
+    width: 100%; aspect-ratio: 2/3;
+    border-radius: 0; overflow: hidden;
+    background: #161616; position: relative;
+}
+.sc__poster img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+    transition: transform .35s ease;
+}
+.sc:hover .sc__poster img { transform: scale(1.05); }
+
+/* Рейтинг */
+.sc__rate {
+    position: absolute; top: 7px; right: 7px;
+    padding: 3px 8px; border-radius: 5px;
+    font-size: 12px; font-weight: 800; line-height: 1; color: #fff;
+}
+.sc__rate--hi  { background: rgba(0,160,50,.92); }
+.sc__rate--mid { background: rgba(200,150,0,.92); }
+.sc__rate--lo  { background: rgba(180,30,30,.9); }
+
+/* Play-оверлей */
+.sc__ov {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 55%);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .22s;
+}
+.sc:hover .sc__ov { opacity: 1; }
+.sc__ov-play {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(192,40,40,.88);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: #fff;
+    box-shadow: 0 4px 18px rgba(192,40,40,.5);
+    transform: scale(.85); transition: transform .18s;
+}
+.sc:hover .sc__ov-play { transform: scale(1); }
+
+/* Подпись */
+.sc__foot { padding: 10px 10px 12px; }
+.sc__name {
+    font-size: 13px; font-weight: 600; color: #ddd;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 3px;
+}
+.sc__meta { font-size: 11px; color: rgba(255,255,255,.28); }
+
+/* Скелет */
+@keyframes sk { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
+.sc-skeleton {
+    border-radius: 10px; aspect-ratio: 2/3;
+    background: linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 75%);
+    background-size: 1200px 100%;
+    animation: sk 1.6s infinite linear;
+}
+
+/* ══ МИНИ-ПОПАП ══ */
+#scPopup {
+    position: fixed; z-index: 9999; width: 300px;
+    background: #161616; border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(17,22,20,.92);
+    pointer-events: none; opacity: 0;
+    transform: scale(.94) translateY(6px);
+    transition: opacity .2s, transform .2s;
+}
+#scPopup.show { opacity:1; transform:scale(1) translateY(0); pointer-events:auto; }
+#scPopup .pp-img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:#0e0e0e; }
+#scPopup .pp-fog { position:absolute; top:0; left:0; right:0; height:175px;
+    background: linear-gradient(to bottom, transparent 40%, #161616 100%); }
+#scPopup .pp-body { padding:14px 16px 16px; }
+#scPopup .pp-title { font-size:15px; font-weight:800; color:#fff; margin-bottom:6px; line-height:1.25; }
+#scPopup .pp-meta  { display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,.4); margin-bottom:10px; flex-wrap:wrap; }
+#scPopup .pp-rt    { padding:2px 7px; border-radius:4px; font-size:12px; font-weight:700; color:#fff; }
+#scPopup .pp-desc  { font-size:13px; line-height:1.6; color:rgba(255,255,255,.55); margin-bottom:14px;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+#scPopup .pp-btns  { display:flex; gap:8px; }
+#scPopup .pp-play  { flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    background:#c02828; color:#fff; border-radius:7px; padding:9px;
+    font-size:13px; font-weight:700; text-decoration:none; transition:background .15s; }
+#scPopup .pp-play:hover { background:#e04040; }
+#scPopup .pp-info  { flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    background:rgba(255,255,255,.08); color:rgba(255,255,255,.7); border-radius:7px; padding:9px;
+    font-size:13px; font-weight:700; text-decoration:none; border:1px solid rgba(255,255,255,.12);
+    transition:background .15s; }
+#scPopup .pp-info:hover { background:rgba(255,255,255,.14); }
+
+@media(max-width:900px) { .sp { padding:20px 16px 80px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sp">
+
+<div class="sp-header">
+    <h1>📺 Сериалы</h1>
+    <p>Тысячи сериалов — все воспроизводятся мгновенно</p>
+</div>
+
+<!-- Жанры -->
+<div class="sp-genres">
+    <button class="sp-genre active" onclick="filterGenre(null,this)">Все</button>
+    <button class="sp-genre" onclick="filterGenre(18,this)">Драма</button>
+    <button class="sp-genre" onclick="filterGenre(35,this)">Комедия</button>
+    <button class="sp-genre" onclick="filterGenre(80,this)">Криминал</button>
+    <button class="sp-genre" onclick="filterGenre(9648,this)">Мистика</button>
+    <button class="sp-genre" onclick="filterGenre(10765,this)">Фантастика</button>
+    <button class="sp-genre" onclick="filterGenre(10759,this)">Экшен</button>
+    <button class="sp-genre" onclick="filterGenre(10749,this)">Романтика</button>
+    <button class="sp-genre" onclick="filterGenre(99,this)">Документальные</button>
+</div>
+
+<!-- Из нашей базы -->
+{% if series %}
+<div class="sp-section">
+    <h2 class="sp-section-title">🗂️ Из нашей базы</h2>
+    <div class="sp-grid">
+        {% for s in series %}{% if s.tmdb_id %}
+        <a href="/series/tmdb/{{ s.tmdb_id }}" class="sc"
+           data-tmdb="{{ s.tmdb_id }}" data-type="tv">
+            <div class="sc__poster">
+                {% set poster_src = s.poster if s.poster and s.poster.startswith('http') else ('/static/posters/'~s.poster if s.poster else '/static/img/no_poster.svg') %}
+                <img src="{{ poster_src }}" loading="lazy" onerror="this.src='/static/img/no_poster.svg'">
+                {% if s.rating %}
+                <div class="sc__rate {% if s.rating >= 7 %}sc__rate--hi{% elif s.rating >= 5 %}sc__rate--mid{% else %}sc__rate--lo{% endif %}">{{ "%.1f"|format(s.rating) }}</div>
+                {% endif %}
+                <div class="sc__ov"><div class="sc__ov-play"><i class="fas fa-play"></i></div></div>
+            </div>
+            <div class="sc__foot">
+                <div class="sc__name">{{ s.title }}</div>
+                <div class="sc__meta">{{ s.year or '' }}{% if s.seasons %} · {{ s.seasons }} сез.{% endif %}</div>
+            </div>
+        </a>
+        {% endif %}{% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Популярные -->
+<div class="sp-section">
+    <h2 class="sp-section-title">🔥 Популярные</h2>
+    <div class="sp-grid" id="rPop">
+        {% for i in range(20) %}<div class="sc-skeleton"></div>{% endfor %}
+    </div>
+</div>
+
+<!-- Топ рейтинг -->
+<div class="sp-section">
+    <h2 class="sp-section-title">⭐ Лучшие по рейтингу</h2>
+    <div class="sp-grid" id="rTop">
+        {% for i in range(20) %}<div class="sc-skeleton"></div>{% endfor %}
+    </div>
+</div>
+
+<!-- Криминал -->
+<div class="sp-section">
+    <h2 class="sp-section-title">🕵️ Криминальные</h2>
+    <div class="sp-grid" id="rCrime">
+        {% for i in range(20) %}<div class="sc-skeleton"></div>{% endfor %}
+    </div>
+</div>
+
+<!-- Фантастика -->
+<div class="sp-section">
+    <h2 class="sp-section-title">🚀 Фантастика и фэнтези</h2>
+    <div class="sp-grid" id="rScifi">
+        {% for i in range(20) %}<div class="sc-skeleton"></div>{% endfor %}
+    </div>
+</div>
+
+<!-- Драма -->
+<div class="sp-section">
+    <h2 class="sp-section-title">🎭 Драмы</h2>
+    <div class="sp-grid" id="rDrama">
+        {% for i in range(20) %}<div class="sc-skeleton"></div>{% endfor %}
+    </div>
+</div>
+
+<!-- Комедии -->
+<div class="sp-section">
+    <h2 class="sp-section-title">😂 Комедийные</h2>
+    <div class="sp-grid" id="rComedy">
+        {% for i in range(20) %}<div class="sc-skeleton"></div>{% endfor %}
+    </div>
+</div>
+
+<!-- В эфире -->
+<div class="sp-section">
+    <h2 class="sp-section-title">📡 Сейчас в эфире</h2>
+    <div class="sp-grid" id="rAir">
+        {% for i in range(20) %}<div class="sc-skeleton"></div>{% endfor %}
+    </div>
+</div>
+
+<!-- Загрузить ещё -->
+<div style="text-align:center;margin:20px 0 40px">
+    <button onclick="loadMore()" style="padding:12px 36px;background:#b02020;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">
+        Загрузить ещё
+    </button>
+</div>
+
+</div><!-- /sp -->
+
+<!-- Попап -->
+<div id="scPopup">
+    <div style="position:relative">
+        <img id="ppImg" class="pp-img" src="" alt="">
+        <div class="pp-fog"></div>
+    </div>
+    <div class="pp-body">
+        <div class="pp-title" id="ppTitle"></div>
+        <div class="pp-meta"  id="ppMeta"></div>
+        <div class="pp-desc"  id="ppDesc"></div>
+        <div class="pp-btns">
+            <a id="ppPlay" href="#" class="pp-play"><i class="fas fa-play"></i> Смотреть</a>
+            <a id="ppInfo" href="#" class="pp-info"><i class="fas fa-info-circle"></i> Инфо</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TKEY = '15d2ea6d0dc1d476efbca3eba2b9bbfb';
+const _seen = new Set();
+{% for s in series %}{% if s.tmdb_id %}_seen.add({{ s.tmdb_id }});{% endif %}{% endfor %}
+let _morePage = 3;
+
+function rCls(v) {
+    if (v >= 7) return 'sc__rate--hi';
+    if (v >= 5) return 'sc__rate--mid';
+    return 'sc__rate--lo';
+}
+
+function mkCard(m) {
+    var name   = (m.name || m.title || '').replace(/</g,'&lt;');
+    var year   = (m.first_air_date || m.release_date || '').split('-')[0];
+    var rating = m.vote_average ? m.vote_average.toFixed(1) : '—';
+    var poster = m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '/static/img/no_poster.svg';
+    var detail = '/series/tmdb/' + m.id;
+    var rc     = rCls(parseFloat(rating) || 0);
+    return '<a href="' + detail + '" class="sc" data-tmdb="' + m.id + '" data-type="tv">' +
+        '<div class="sc__poster">' +
+            '<img src="' + poster + '" loading="lazy" onerror="this.src=\'/static/img/no_poster.svg\'">' +
+            '<div class="sc__rate ' + rc + '">' + rating + '</div>' +
+            '<div class="sc__ov"><div class="sc__ov-play"><i class="fas fa-play"></i></div></div>' +
+        '</div>' +
+        '<div class="sc__foot">' +
+            '<div class="sc__name">' + name + '</div>' +
+            '<div class="sc__meta">' + year + '</div>' +
+        '</div>' +
+    '</a>';
+}
+
+async function loadGrid(url, id, limit) {
+    limit = limit || 30;
+    try {
+        var res  = await fetch(url + '&api_key=' + TKEY + '&language=ru-RU');
+        var data = await res.json();
+        var el   = document.getElementById(id);
+        if (!el) return;
+        var items = (data.results || [])
+            .filter(function(m) {
+                if (!m.poster_path || m.vote_average < 4.5) return false;
+                if (_seen.has(m.id)) return false;
+                _seen.add(m.id);
+                return true;
+            })
+            .slice(0, limit);
+        el.innerHTML = items.length
+            ? items.map(mkCard).join('')
+            : '<p style="color:rgba(255,255,255,.2);padding:20px;grid-column:1/-1">Нет данных</p>';
+        attachPopups(el);
+    } catch(e) { console.error(e); }
+}
+
+async function loadGridPages(baseUrl, id, pages, limit) {
+    limit = limit || 30;
+    var el = document.getElementById(id);
+    if (!el) return;
+    var all = [];
+    for (var p = 1; p <= pages; p++) {
+        try {
+            var res  = await fetch(baseUrl + '&page=' + p + '&api_key=' + TKEY + '&language=ru-RU');
+            var data = await res.json();
+            (data.results || []).forEach(function(m) {
+                if (!m.poster_path || m.vote_average < 4.5) return;
+                if (_seen.has(m.id)) return;
+                _seen.add(m.id);
+                all.push(m);
+            });
+        } catch(e) {}
+    }
+    el.innerHTML = all.length
+        ? all.slice(0, limit).map(mkCard).join('')
+        : '<p style="color:rgba(255,255,255,.2);padding:20px;grid-column:1/-1">Нет данных</p>';
+    attachPopups(el);
+}
+
+function filterGenre(gid, btn) {
+    document.querySelectorAll('.sp-genre').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _seen.clear();
+    {% for s in series %}{% if s.tmdb_id %}_seen.add({{ s.tmdb_id }});{% endif %}{% endfor %}
+    var b = 'https://api.themoviedb.org/3/';
+    if (gid) {
+        var base = b + 'discover/tv?with_genres=' + gid + '&sort_by=popularity.desc';
+        loadGrid(base + '&page=1', 'rPop', 30);
+        loadGrid(b + 'discover/tv?with_genres=' + gid + '&sort_by=vote_average.desc&vote_count.gte=100&page=1', 'rTop', 30);
+        loadGrid(base + '&page=2', 'rCrime', 30);
+        loadGrid(base + '&page=3', 'rScifi', 30);
+        loadGrid(base + '&page=4', 'rDrama', 30);
+        loadGrid(base + '&page=5', 'rComedy', 30);
+        loadGrid(base + '&page=6', 'rAir', 30);
+    } else {
+        loadAll();
+    }
+}
+
+async function loadMore() {
+    var el = document.getElementById('rAir');
+    if (!el) return;
+    try {
+        var r = await fetch('https://api.themoviedb.org/3/tv/popular?page=' + _morePage + '&api_key=' + TKEY + '&language=ru-RU');
+        var d = await r.json();
+        _morePage++;
+        var cards = (d.results || []).filter(function(m) {
+            if (!m.poster_path) return false;
+            if (_seen.has(m.id)) return false;
+            _seen.add(m.id);
+            return true;
+        });
+        el.insertAdjacentHTML('beforeend', cards.map(mkCard).join(''));
+        attachPopups(el);
+    } catch(e) {}
+}
+
+function loadAll() {
+    var b = 'https://api.themoviedb.org/3/';
+    loadGridPages(b + 'tv/popular?', 'rPop', 2, 30);
+    loadGridPages(b + 'tv/top_rated?', 'rTop', 2, 30);
+    loadGrid(b + 'discover/tv?with_genres=80&sort_by=popularity.desc&page=1', 'rCrime', 30);
+    loadGrid(b + 'discover/tv?with_genres=10765&sort_by=popularity.desc&page=1', 'rScifi', 30);
+    loadGrid(b + 'discover/tv?with_genres=18&sort_by=popularity.desc&page=1', 'rDrama', 30);
+    loadGrid(b + 'discover/tv?with_genres=35&sort_by=popularity.desc&page=1', 'rComedy', 30);
+    loadGrid(b + 'tv/on_the_air?page=1', 'rAir', 30);
+}
+
+loadAll();
+
+/* ══ МИНИ-ПОПАП ══ */
+var popup = document.getElementById('scPopup');
+var ptimer = null, pactive = null;
+
+function popRateCls(v) {
+    if(v>=7) return 'background:rgba(34,139,34,.92)';
+    if(v>=5) return 'background:rgba(200,150,0,.9)';
+    return 'background:rgba(180,30,30,.9)';
+}
+
+async function showPopup(card, e) {
+    var id = card.dataset.tmdb;
+    if (!id) return;
+    try {
+        var d = await fetch('https://api.themoviedb.org/3/tv/'+id+'?api_key='+TKEY+'&language=ru-RU').then(r=>r.json());
+        var title   = d.name || d.original_name || '';
+        var year    = (d.first_air_date||'').split('-')[0];
+        var rating  = d.vote_average ? d.vote_average.toFixed(1) : '—';
+        var genres  = (d.genres||[]).slice(0,3).map(g=>g.name).join(', ');
+        var COUNTRY_MAP = {US:'США',GB:'Великобритания',FR:'Франция',DE:'Германия',JP:'Япония',KR:'Корея',IT:'Италия',ES:'Испания',RU:'Россия',CN:'Китай',IN:'Индия',CA:'Канада',AU:'Австралия'};
+        var countries = (d.production_countries||[]).slice(0,2).map(function(c){ return COUNTRY_MAP[c.iso_3166_1]||c.name; }).join(', ');
+        var desc    = d.overview || 'Описание отсутствует.';
+        var seasons = d.number_of_seasons ? d.number_of_seasons+' сез.' : '';
+        var back    = d.backdrop_path ? 'https://image.tmdb.org/t/p/w780'+d.backdrop_path
+                    : (d.poster_path  ? 'https://image.tmdb.org/t/p/w500'+d.poster_path : '');
+        var rc = popRateCls(parseFloat(rating)||0);
+
+        document.getElementById('ppImg').src = back;
+        document.getElementById('ppTitle').textContent = title;
+        document.getElementById('ppMeta').innerHTML =
+            '<span class="pp-rt" style="'+rc+'">★ '+rating+'</span>'+
+            (year?'<span>'+year+'</span>':'')+
+            (seasons?'<span>'+seasons+'</span>':'')+
+            (countries?'<span>🌍 '+countries+'</span>':'')+
+            (genres?'<span>'+genres+'</span>':'');
+        document.getElementById('ppDesc').textContent = desc;
+        document.getElementById('ppPlay').href = '/watch/tv/'+id;
+        document.getElementById('ppInfo').href = '/series/tmdb/'+id;
+
+        posPopup(e);
+        popup.classList.add('show');
+    } catch(_){}
+}
+
+function posPopup(e) {
+    var pw=300, gap=14, vw=window.innerWidth, vh=window.innerHeight;
+    var x=e.clientX+gap, y=e.clientY-80;
+    if(x+pw>vw-10) x=e.clientX-pw-gap;
+    var ph=popup.offsetHeight||360;
+    if(y+ph>vh-10) y=vh-ph-10;
+    if(y<10) y=10;
+    popup.style.left=x+'px'; popup.style.top=y+'px';
+}
+function hidePopup() { popup.classList.remove('show'); pactive=null; }
+if(popup) popup.addEventListener('mouseleave', hidePopup);
+
+function attachPopups(container) {
+    (container||document).querySelectorAll('.sc[data-tmdb]').forEach(function(card){
+        if (card._ppBound) return;
+        card._ppBound = true;
+        card.addEventListener('mouseenter', function(e){
+            if(pactive===card) return;
+            clearTimeout(ptimer); pactive=card;
+            ptimer=setTimeout(function(){ showPopup(card,e); }, 400);
+        });
+        card.addEventListener('mouseleave', function(){
+            clearTimeout(ptimer);
+            setTimeout(function(){ if(!popup.matches(':hover')) hidePopup(); }, 100);
+        });
+    });
+}
+attachPopups(document.body);
+</script>
+{% endblock %}

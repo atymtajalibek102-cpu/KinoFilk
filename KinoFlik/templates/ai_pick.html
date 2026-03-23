@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+{% block title %}AI-подборщик — KinoFlik{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --acc: #b02020;
+    --acc2: #b30000;
+    --bg0: #0B0B0D;
+    --bg1: #111114;
+    --bg2: #18181C;
+    --bg3: #1F1F24;
+    --txt1: #F2F2F5;
+    --txt2: #9999AA;
+    --txt3: #55555F;
+    --brd: rgba(255, 255, 255, .07);
+    --brd2: rgba(255, 255, 255, .12);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--bg0);
+    color: var(--txt1);
+  }
+
+  .ai-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .ai-hero {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .ai-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+    display: block;
+    line-height: 1;
+  }
+
+  .ai-hero h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 12px;
+  }
+
+  .ai-hero h1 span {
+    color: var(--acc);
+  }
+
+  .ai-hero p {
+    color: var(--txt2);
+    font-size: 15px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .ai-form {
+    background: var(--bg1);
+    border: 1px solid var(--brd2);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+
+  .ai-moods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .mood-chip {
+    padding: 7px 16px;
+    border-radius: 20px;
+    background: var(--bg2);
+    border: 1px solid var(--brd2);
+    color: var(--txt2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .mood-chip:hover,
+  .mood-chip.active {
+    background: rgba(90, 150, 120, .15);
+    border-color: rgba(90, 150, 120, .4);
+    color: #fff;
+  }
+
+  .ai-input-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .ai-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--brd2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 15px;
+    color: var(--txt1);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .ai-input:focus {
+    border-color: rgba(90, 150, 120, .5);
+  }
+
+  .ai-input::placeholder {
+    color: var(--txt3);
+  }
+
+  .ai-btn {
+    padding: 14px 28px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--acc), var(--acc2));
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Unbounded', sans-serif;
+    cursor: pointer;
+    border: none;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .ai-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(90, 150, 120, .4);
+  }
+
+  .ai-btn:disabled {
+    opacity: .5;
+    transform: none;
+    cursor: wait;
+  }
+
+  .ai-hint {
+    font-size: 12px;
+    color: var(--txt3);
+    margin-top: 10px;
+  }
+
+  /* Results */
+  .results-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .results-header h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .ai-badge {
+    background: rgba(90, 150, 120, .2);
+    border: 1px solid rgba(90, 150, 120, .3);
+    color: var(--acc);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .mc {
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--bg2);
+    border: 1px solid var(--brd);
+    transition: all .3s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .mc:hover {
+    transform: translateY(-8px);
+    border-color: rgba(90, 150, 120, .4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, .5);
+  }
+
+  .mc-poster {
+    position: relative;
+    aspect-ratio: 2/3;
+    background: var(--bg3);
+    overflow: hidden;
+  }
+
+  .mc-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .4s;
+  }
+
+  .mc:hover .mc-poster img {
+    transform: scale(1.05);
+  }
+
+  .mc-rating {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(17, 22, 20, .92);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #f5c518;
+  }
+
+  .mc-body {
+    padding: 12px;
+  }
+
+  .mc-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mc-reason {
+    font-size: 12px;
+    color: var(--txt2);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Loading */
+  .ai-loading {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .ai-loading .dots span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--acc);
+    margin: 0 4px;
+    animation: bounce .8s ease-in-out infinite;
+  }
+
+  .ai-loading .dots span:nth-child(2) {
+    animation-delay: .15s;
+  }
+
+  .ai-loading .dots span:nth-child(3) {
+    animation-delay: .3s;
+  }
+
+  @keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+      transform: scale(0)
+    }
+
+    40% {
+      transform: scale(1)
+    }
+  }
+
+  .ai-loading p {
+    color: var(--txt2);
+    margin-top: 16px;
+    font-size: 14px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-page">
+  <div class="ai-hero">
+    <span class="ai-icon">🎬</span>
+    <h1>AI <span>подборщик</span> фильмов</h1>
+    <p>Опишите своё настроение — нейросеть подберёт идеальное кино из каталога KinoFlik</p>
+  </div>
+
+  <div class="ai-form">
+    <div class="ai-moods" id="moodChips">
+      <span class="mood-chip" onclick="setMood(this,'Хочу что-то смешное и лёгкое')">😂 Весёлое</span>
+      <span class="mood-chip" onclick="setMood(this,'Хочу напряжённый триллер с неожиданной концовкой')">😨
+        Триллер</span>
+      <span class="mood-chip" onclick="setMood(this,'Хочу красивый романтичный фильм')">💕 Романтика</span>
+      <span class="mood-chip" onclick="setMood(this,'Хочу эпический фантастический блокбастер')">🚀 Фантастика</span>
+      <span class="mood-chip" onclick="setMood(this,'Хочу глубокую драму которая заставит думать')">🎭 Драма</span>
+      <span class="mood-chip" onclick="setMood(this,'Хочу боевик с крутыми экшн сценами')">💥 Экшн</span>
+      <span class="mood-chip" onclick="setMood(this,'Хочу страшный фильм на ночь')">👻 Ужасы</span>
+      <span class="mood-chip" onclick="setMood(this,'Хочу посмотреть что-то с детьми семейное')">👨‍👩‍👧
+        Семейное</span>
+    </div>
+    <div class="ai-input-row">
+      <input class="ai-input" id="moodInput"
+        placeholder="Например: хочу что-то грустное но со смыслом, после тяжёлого дня..." maxlength="300">
+      <button class="ai-btn" id="pickBtn" onclick="pickMovies()">
+        <i class="fas fa-magic"></i> Подобрать
+      </button>
+    </div>
+    <div class="ai-hint">ИИ выберет 6 фильмов специально под ваше настроение из нашего каталога</div>
+  </div>
+
+  <div id="results"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function setMood(el, text) {
+    document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('moodInput').value = text;
+  }
+
+  async function pickMovies() {
+    const mood = document.getElementById('moodInput').value.trim();
+    if (!mood) { document.getElementById('moodInput').focus(); return; }
+
+    const btn = document.getElementById('pickBtn');
+    btn.disabled = true;
+    document.getElementById('results').innerHTML = `
+    <div class="ai-loading">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <p>AI анализирует настроение и подбирает фильмы...</p>
+    </div>`;
+
+    try {
+      const r = await fetch('/api/ai-pick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mood })
+      });
+      const d = await r.json();
+      if (d.success && d.movies.length) {
+        let html = `<div class="results-header">
+        <h2>Подборка для вас</h2>
+        <span class="ai-badge">✨ AI выбрал ${d.movies.length} фильмов</span>
+      </div><div class="movies-grid">`;
+        d.movies.forEach(m => {
+          const poster = m.poster
+            ? (m.poster.startsWith('http') ? m.poster : `/static/posters/${m.poster}`)
+            : '/static/img/no_poster.svg';
+          html += `<a href="/movie/${m.id}" class="mc">
+          <div class="mc-poster">
+            <img src="${poster}" onerror="this.src='/static/img/no_poster.svg'" loading="lazy">
+            ${m.rating ? `<div class="mc-rating">★ ${m.rating}</div>` : ''}
+          </div>
+          <div class="mc-body">
+            <div class="mc-title">${esc(m.title)}</div>
+            <div class="mc-reason">${esc(m.reason || '')}</div>
+          </div>
+        </a>`;
+        });
+        html += '</div>';
+        document.getElementById('results').innerHTML = html;
+      } else {
+        document.getElementById('results').innerHTML = `<div style="text-align:center;padding:40px;color:var(--txt3)">${d.message || 'Ничего не найдено. Попробуйте описать настроение иначе.'}</div>`;
+      }
+    } catch (e) {
+      document.getElementById('results').innerHTML = `<div style="text-align:center;padding:40px;color:#b02020">Ошибка: ${e.message}</div>`;
+    }
+    btn.disabled = false;
+  }
+
+  document.getElementById('moodInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') pickMovies();
+  });
+
+  function esc(s) {
+    if (!s) return '';
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+</script>
+{% endblock %}

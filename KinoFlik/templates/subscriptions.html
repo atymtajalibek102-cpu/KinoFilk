@@ -1,0 +1,869 @@
+    {% extends "base.html" %}
+    {% block title %}Premium — KinoFlik{% endblock %}
+
+    {% block extra_css %}
+    <style>
+    :root {
+        --acc:#b02020; --acc2:#b30000; --acc-glow:rgba(90,150,120,.28);
+        --gold:#F5C518; --gold2:#FFD740; --gold-glow:rgba(245,197,24,.28);
+        --hi:#3DD68C; --blue:#4A9AFF;
+        --bg0:#0B0B0D; --bg1:#111114; --bg2:#18181C; --bg3:#1F1F24;
+        --txt1:#F2F2F5; --txt2:#9999AA; --txt3:#55555F;
+        --brd:rgba(255,255,255,.07); --brd2:rgba(255,255,255,.13);
+    }
+
+    /* ══════════ HERO ══════════ */
+    .s-hero {
+        position:relative; text-align:center;
+        padding:80px 24px 0; overflow:hidden;
+    }
+    /* анимированный градиент-фон */
+    .s-hero-glow {
+        position:absolute; top:-120px; left:50%; transform:translateX(-50%);
+        width:900px; height:500px; border-radius:50%;
+        background:radial-gradient(ellipse at center,
+            rgba(90,150,120,.14) 0%, rgba(90,150,120,.04) 45%, transparent 70%);
+        animation:pulse-glow 4s ease-in-out infinite alternate;
+        pointer-events:none;
+    }
+    @keyframes pulse-glow {
+        from { opacity:.7; transform:translateX(-50%) scale(1); }
+        to   { opacity:1;  transform:translateX(-50%) scale(1.08); }
+    }
+    .s-badge {
+        display:inline-flex; align-items:center; gap:7px;
+        padding:7px 18px; border-radius:30px;
+        background:linear-gradient(135deg,rgba(245,197,24,.13),rgba(245,197,24,.06));
+        border:1px solid rgba(245,197,24,.3);
+        color:var(--gold); font-size:13px; font-weight:700;
+        margin-bottom:24px; letter-spacing:.3px;
+    }
+    .s-hero h1 {
+        font-family:'Unbounded',sans-serif;
+        font-size:clamp(2rem,5.5vw,3.6rem); font-weight:900;
+        line-height:1.08; letter-spacing:-.04em; margin-bottom:18px;
+    }
+    .s-hero h1 em { font-style:normal; color:var(--acc); }
+    .s-hero h1 .g { color:var(--gold); }
+    .s-subtitle {
+        font-size:17px; color:var(--txt2); max-width:500px;
+        margin:0 auto 32px; line-height:1.65;
+    }
+
+    /* активная подписка */
+    .active-sub {
+        display:inline-flex; align-items:center; gap:12px;
+        padding:14px 22px; border-radius:14px; margin-bottom:40px;
+        background:linear-gradient(135deg,rgba(61,214,140,.1),rgba(61,214,140,.04));
+        border:1px solid rgba(61,214,140,.25);
+    }
+    .as-dot { width:10px; height:10px; border-radius:50%; background:var(--hi); flex-shrink:0; box-shadow:0 0 8px var(--hi); animation:blink 2s infinite; }
+    @keyframes blink { 50%{opacity:.4} }
+    .as-info { text-align:left; }
+    .as-name { font-weight:700; font-size:14px; }
+    .as-date { font-size:12px; color:var(--txt3); margin-top:2px; }
+
+    /* социальное доказательство */
+    .social-proof {
+        display:flex; align-items:center; justify-content:center;
+        gap:16px; margin-bottom:52px; flex-wrap:wrap;
+    }
+    .sp-avatars { display:flex; }
+    .sp-avatars span {
+        width:32px; height:32px; border-radius:50%; border:2px solid var(--bg1);
+        background:linear-gradient(135deg,var(--acc),#7a0000);
+        display:flex; align-items:center; justify-content:center;
+        font-size:12px; font-weight:800; color:#fff; font-family:'Unbounded',sans-serif;
+        margin-left:-8px;
+    }
+    .sp-avatars span:first-child { margin-left:0; }
+    .sp-text { font-size:13px; color:var(--txt2); }
+    .sp-text b { color:var(--txt1); }
+    .sp-stars { color:var(--gold); font-size:13px; letter-spacing:1px; }
+
+    /* ══════════ TOGGLE ══════════ */
+    .billing-toggle {
+        display:inline-flex; align-items:center; gap:14px;
+        background:var(--bg2); border:1px solid var(--brd2);
+        border-radius:50px; padding:7px 10px; margin-bottom:52px;
+    }
+    .bt-opt {
+        padding:8px 20px; border-radius:40px; font-size:14px; font-weight:700;
+        color:var(--txt3); cursor:pointer; transition:all .22s; user-select:none;
+        border:none; background:none; font-family:'Manrope',sans-serif;
+    }
+    .bt-opt.on { background:white; color:#161616; box-shadow:0 2px 10px rgba(0,0,0,.3); }
+    .bt-save-pill {
+        background:linear-gradient(135deg,rgba(61,214,140,.18),rgba(61,214,140,.08));
+        border:1px solid rgba(61,214,140,.25); border-radius:20px;
+        padding:4px 10px; font-size:11px; font-weight:800; color:var(--hi);
+        pointer-events:none;
+    }
+
+    /* ══════════ PRICING ══════════ */
+    .pricing-wrap { max-width:980px; margin:0 auto; padding:0 20px; }
+    .pricing-grid {
+        display:grid; grid-template-columns:repeat(3,1fr);
+        gap:20px; align-items:stretch; margin-bottom:80px;
+    }
+
+    .pc {
+        background:var(--bg1); border:1px solid var(--brd);
+        border-radius:22px; padding:30px 26px;
+        position:relative; transition:border-color .25s,transform .25s;
+        display:flex; flex-direction:column;
+    }
+    .pc:hover:not(.featured) { border-color:var(--brd2); transform:translateY(-4px); }
+
+    /* FEATURED */
+    .pc.featured {
+        background:linear-gradient(160deg,#130505 0%,#0d0d10 100%);
+        border-color:rgba(90,150,120,.45);
+        box-shadow:0 0 0 1px rgba(90,150,120,.18), 0 20px 48px rgba(90,150,120,.18);
+        z-index:2;
+    }
+    .pc.featured:hover { transform:translateY(-5px); }
+
+    /* GOLD */
+    .pc.gold {
+        background:linear-gradient(160deg,#120e00 0%,#0d0d10 100%);
+        border-color:rgba(245,197,24,.35);
+        box-shadow:0 0 0 1px rgba(245,197,24,.12), 0 20px 50px rgba(245,197,24,.1);
+    }
+    .pc.gold:hover { transform:translateY(-4px); box-shadow:0 0 0 1px rgba(245,197,24,.2), 0 28px 64px rgba(245,197,24,.15); }
+
+    .pc-ribbon {
+        position:absolute; top:-1px; left:50%; transform:translateX(-50%);
+        padding:5px 20px; border-radius:0 0 12px 12px;
+        font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.6px;
+        white-space:nowrap;
+    }
+    .pc-ribbon.red  { background:linear-gradient(135deg,var(--acc),var(--acc2)); color:#fff; box-shadow:0 4px 14px var(--acc-glow); }
+    .pc-ribbon.gold { background:linear-gradient(135deg,#c8900a,var(--gold)); color:#1a0f00; box-shadow:0 4px 14px var(--gold-glow); }
+
+    .pc-icon {
+        width:52px; height:52px; border-radius:14px; margin-bottom:18px;
+        display:flex; align-items:center; justify-content:center; font-size:22px;
+    }
+    .ic-grey  { background:rgba(255,255,255,.05); color:var(--txt3); }
+    .ic-red   { background:rgba(90,150,120,.12);     color:var(--acc); }
+    .ic-gold  { background:rgba(245,197,24,.1);   color:var(--gold); }
+
+    .pc-name {
+        font-family:'Unbounded',sans-serif; font-size:16px; font-weight:900;
+        margin-bottom:6px;
+    }
+    .pc-desc { font-size:13px; color:var(--txt3); line-height:1.55; margin-bottom:20px; }
+
+    .pc-price-row { display:flex; align-items:flex-end; gap:4px; margin-bottom:4px; }
+    .pc-amount {
+        font-family:'Unbounded',sans-serif; font-size:40px; font-weight:900; line-height:1;
+    }
+    .pc-amount.gold-col { color:var(--gold); }
+    .pc-cur  { font-size:17px; font-weight:700; color:var(--txt2); margin-bottom:5px; }
+    .pc-per  { font-size:12px; color:var(--txt3); margin-bottom:4px; }
+    .pc-economy {
+        min-height:20px; font-size:12px; font-weight:700; margin-bottom:20px;
+        color:var(--hi); display:flex; align-items:center; gap:5px;
+    }
+
+    .pc-divider { height:1px; background:var(--brd); margin-bottom:18px; }
+
+    .pc-feats { list-style:none; display:flex; flex-direction:column; gap:10px; flex:1; margin-bottom:24px; }
+    .pc-feats li { display:flex; align-items:center; gap:10px; font-size:14px; color:var(--txt2); }
+    .pc-feats li.y { color:var(--txt1); }
+    .pc-feats li.n { color:var(--txt3); }
+    .pc-feats li.g { color:var(--txt1); }
+    .pc-feats li i { width:18px; text-align:center; font-size:11px; flex-shrink:0; }
+    .pc-feats li.y i { color:var(--hi); }
+    .pc-feats li.g i { color:var(--gold); }
+    .pc-feats li.n i { color:var(--txt3); }
+
+    /* кнопки */
+    .btn-disabled {
+        width:100%; padding:13px; border-radius:12px;
+        border:1px solid var(--brd2); background:var(--bg2);
+        color:var(--txt3); font-size:14px; font-weight:700;
+        font-family:'Manrope',sans-serif; cursor:not-allowed;
+    }
+    .btn-buy {
+        width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;
+        font-size:14px; font-weight:800; font-family:'Unbounded',sans-serif;
+        display:flex; align-items:center; justify-content:center; gap:9px;
+        transition:all .22s; letter-spacing:.1px;
+    }
+    .btn-buy.red {
+        background:linear-gradient(135deg,var(--acc),var(--acc2));
+        color:#fff; box-shadow:0 6px 20px var(--acc-glow);
+    }
+    .btn-buy.red:hover { transform:translateY(-2px); box-shadow:0 10px 28px var(--acc-glow); }
+    .btn-buy.gld {
+        background:linear-gradient(135deg,#c8900a,var(--gold2));
+        color:#1a0f00; box-shadow:0 6px 20px var(--gold-glow);
+    }
+    .btn-buy.gld:hover { transform:translateY(-2px); box-shadow:0 12px 32px var(--gold-glow); }
+
+    /* ══════════ STATS BELT ══════════ */
+    .stats-belt {
+        display:grid; grid-template-columns:repeat(4,1fr);
+        gap:1px; background:var(--brd);
+        border:1px solid var(--brd); border-radius:18px; overflow:hidden;
+        margin-bottom:80px;
+    }
+    .sb-cell {
+        background:var(--bg1); padding:24px 18px; text-align:center;
+        transition:background .2s;
+    }
+    .sb-cell:hover { background:var(--bg2); }
+    .sb-num {
+        font-family:'Unbounded',sans-serif; font-size:26px; font-weight:900;
+        margin-bottom:4px; line-height:1;
+    }
+    .sb-lbl { font-size:12px; color:var(--txt3); }
+
+    /* ══════════ FEATURES ══════════ */
+    .feats-sec { margin-bottom:80px; }
+    .sec-title {
+        font-family:'Unbounded',sans-serif; font-size:20px; font-weight:900;
+        text-align:center; margin-bottom:8px;
+    }
+    .sec-sub { text-align:center; color:var(--txt3); font-size:14px; margin-bottom:36px; }
+
+    .feats-grid {
+        display:grid; grid-template-columns:repeat(3,1fr); gap:18px;
+    }
+    .fc {
+        background:var(--bg1); border:1px solid var(--brd);
+        border-radius:16px; padding:24px; transition:all .22s;
+    }
+    .fc:hover { border-color:var(--brd2); transform:translateY(-3px); }
+    .fc-ico {
+        width:46px; height:46px; border-radius:13px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:20px; margin-bottom:14px;
+    }
+    .ci-r { background:rgba(90,150,120,.1);    color:var(--acc); }
+    .ci-g { background:rgba(61,214,140,.1); color:var(--hi); }
+    .ci-y { background:rgba(245,197,24,.1); color:var(--gold); }
+    .ci-b { background:rgba(74,154,255,.1); color:var(--blue); }
+    .ci-p { background:rgba(167,139,250,.1);color:#a78bfa; }
+    .ci-o { background:rgba(251,146,60,.1); color:#fb923c; }
+    .fc h4 { font-size:15px; font-weight:700; margin-bottom:7px; }
+    .fc p  { font-size:13px; color:var(--txt3); line-height:1.6; }
+
+    /* ══════════ COMPARE TABLE ══════════ */
+    .compare-sec { margin-bottom:80px; }
+    .compare-tbl { width:100%; border-collapse:collapse; }
+    .compare-tbl th {
+        padding:14px 16px; text-align:left; font-size:13px; font-weight:700;
+        color:var(--txt3); text-transform:uppercase; letter-spacing:.6px;
+        background:var(--bg2); border-bottom:1px solid var(--brd);
+    }
+    .compare-tbl th.hl { background:rgba(90,150,120,.08); color:var(--acc); border-bottom:2px solid var(--acc); }
+    .compare-tbl td {
+        padding:13px 16px; border-bottom:1px solid var(--brd);
+        font-size:14px; vertical-align:middle;
+    }
+    .compare-tbl td.hl { background:rgba(90,150,120,.04); }
+    .compare-tbl tr:last-child td { border-bottom:none; }
+    .compare-tbl tr:hover td { background:rgba(255,255,255,.02); }
+    .compare-tbl tr:hover td.hl { background:rgba(90,150,120,.06); }
+    .c-yes { color:var(--hi); font-size:16px; }
+    .c-no  { color:var(--txt3); font-size:16px; }
+
+    /* ══════════ FAQ ══════════ */
+    .faq-sec { margin-bottom:80px; }
+    .faq-item {
+        background:var(--bg1); border:1px solid var(--brd);
+        border-radius:12px; margin-bottom:8px; overflow:hidden;
+    }
+    .faq-q {
+        width:100%; padding:16px 20px; display:flex;
+        align-items:center; justify-content:space-between;
+        background:none; border:none; color:var(--txt1);
+        font-size:15px; font-weight:600; text-align:left; cursor:pointer;
+        font-family:'Manrope',sans-serif; transition:background .2s;
+    }
+    .faq-q:hover { background:rgba(255,255,255,.03); }
+    .faq-q .faq-ico { color:var(--txt3); transition:transform .25s,color .2s; flex-shrink:0; }
+    .faq-item.open .faq-ico { transform:rotate(180deg); color:var(--acc); }
+    .faq-a {
+        max-height:0; overflow:hidden; transition:max-height .32s ease,padding .3s;
+        font-size:14px; color:var(--txt3); line-height:1.7; padding:0 20px;
+    }
+    .faq-item.open .faq-a { max-height:160px; padding:2px 20px 18px; }
+
+    /* ══════════ MODAL ══════════ */
+    .m-bg {
+        position:fixed; inset:0; z-index:1000;
+        background:rgba(17,22,20,.95); backdrop-filter:blur(16px);
+        display:flex; align-items:center; justify-content:center;
+        padding:20px; opacity:0; pointer-events:none; transition:opacity .3s;
+    }
+    .m-bg.open { opacity:1; pointer-events:all; }
+    .m-box {
+        background:var(--bg1); border:1px solid var(--brd2);
+        border-radius:22px; width:100%; max-width:460px;
+        transform:scale(.95) translateY(18px); transition:transform .3s;
+        box-shadow:0 28px 64px rgba(17,22,20,.72);
+        overflow:hidden;
+    }
+    .m-bg.open .m-box { transform:scale(1) translateY(0); }
+
+    .m-top {
+        background:linear-gradient(135deg,rgba(90,150,120,.12),rgba(90,150,120,.04));
+        border-bottom:1px solid rgba(90,150,120,.15);
+        padding:22px 24px 20px;
+        display:flex; align-items:flex-start; justify-content:space-between;
+    }
+    .m-plan-name { font-family:'Unbounded',sans-serif; font-size:18px; font-weight:900; margin-bottom:4px; }
+    .m-plan-price { font-family:'Unbounded',sans-serif; font-size:26px; font-weight:900; color:var(--acc); }
+    .m-close {
+        width:32px; height:32px; border-radius:9px; flex-shrink:0;
+        background:rgba(255,255,255,.07); border:1px solid var(--brd);
+        color:var(--txt3); display:flex; align-items:center; justify-content:center;
+        cursor:pointer; font-size:13px; transition:all .2s;
+    }
+    .m-close:hover { color:var(--txt1); background:rgba(255,255,255,.12); }
+
+    .m-body { padding:24px; display:flex; flex-direction:column; gap:15px; }
+    .mf { }
+    .mf label {
+        display:block; font-size:11px; font-weight:700; color:var(--txt3);
+        text-transform:uppercase; letter-spacing:.7px; margin-bottom:8px;
+    }
+    .mf input {
+        width:100%; background:var(--bg2); border:1px solid var(--brd2);
+        border-radius:10px; padding:12px 14px; font-size:15px; color:var(--txt1);
+        font-family:'Manrope',sans-serif; outline:none; transition:border-color .2s,background .2s;
+    }
+    .mf input::placeholder { color:var(--txt3); }
+    .mf input:focus { border-color:rgba(90,150,120,.45); background:rgba(90,150,120,.04); }
+    .mf-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+    .btn-pay {
+        width:100%; padding:15px; border-radius:12px; border:none; cursor:pointer;
+        background:linear-gradient(135deg,var(--acc),var(--acc2));
+        color:#fff; font-size:15px; font-weight:800;
+        font-family:'Unbounded',sans-serif;
+        box-shadow:0 6px 20px var(--acc-glow);
+        display:flex; align-items:center; justify-content:center; gap:9px;
+        transition:all .22s; margin-top:4px;
+    }
+    .btn-pay:hover { transform:translateY(-2px); box-shadow:0 10px 28px var(--acc-glow); }
+    .m-secure { text-align:center; font-size:12px; color:var(--txt3); display:flex; align-items:center; justify-content:center; gap:6px; margin-top:4px; }
+
+    /* ══════════ RESPONSIVE ══════════ */
+    @media(max-width:860px){
+        .pricing-grid { grid-template-columns:1fr; max-width:400px; margin-left:auto; margin-right:auto; }
+        
+        .feats-grid { grid-template-columns:1fr 1fr; }
+        .stats-belt { grid-template-columns:1fr 1fr; }
+        .compare-sec { overflow-x:auto; }
+    }
+    @media(max-width:560px){
+        .feats-grid { grid-template-columns:1fr; }
+        .pricing-wrap,.s-hero { padding-left:14px; padding-right:14px; }
+    }
+    </style>
+    {% endblock %}
+
+    {% block content %}
+
+    <!-- ══ HERO ══ -->
+    <div class="s-hero">
+        <div class="s-hero-glow"></div>
+        <div class="s-badge"><i class="fas fa-crown"></i> KinoFlik Premium</div>
+        <h1>Смотри всё что хочешь.<br><em>Без рекламы.</em> <span class="g">В 4K.</span></h1>
+        <p class="s-subtitle">
+            Тысячи фильмов и сериалов — в HD и 4K Ultra HD, на любом устройстве,
+            в любое время. Никаких пауз, никакой рекламы.
+        </p>
+
+        {% if current_sub %}
+        <div style="display:flex;justify-content:center;margin-bottom:40px">
+            <div class="active-sub">
+                <div class="as-dot"></div>
+                <div class="as-info">
+                    <div class="as-name">Активная подписка: {{ current_sub.name }}</div>
+                    <div class="as-date">Действует до {{ current_sub.end_date }}</div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="social-proof">
+            <div class="sp-avatars">
+                <span>А</span><span>К</span><span>М</span><span>Д</span><span>Л</span>
+            </div>
+            <span class="sp-text"><b>50 000+</b> человек уже смотрят</span>
+            <span class="sp-stars">★★★★★</span>
+            <span class="sp-text">4.9 / 5</span>
+        </div>
+        {% endif %}
+
+        <!-- BILLING TOGGLE -->
+        <div class="billing-toggle">
+            <button class="bt-opt on" id="btn-month" onclick="setToggle('month')">Помесячно</button>
+            <button class="bt-opt"   id="btn-year"  onclick="setToggle('year')">Ежегодно</button>
+            <span class="bt-save-pill"><i class="fas fa-tag"></i> −25%</span>
+        </div>
+    </div>
+
+    <div class="pricing-wrap">
+
+        <!-- ══ PRICING CARDS ══ -->
+        <div class="pricing-grid">
+
+            <!-- БАЗОВЫЙ -->
+            <div class="pc">
+                <div class="pc-icon ic-grey"><i class="fas fa-play"></i></div>
+                <div class="pc-name">Базовый</div>
+                <div class="pc-desc">Попробуй бесплатно — без карты</div>
+                <div class="pc-price-row">
+                    <span class="pc-amount">0</span>
+                    <span class="pc-cur">₸</span>
+                </div>
+                <div class="pc-per">бесплатно навсегда</div>
+                <div class="pc-economy"></div>
+                <div class="pc-divider"></div>
+                <ul class="pc-feats">
+                    <li class="y"><i class="fas fa-check"></i> Каталог фильмов</li>
+                    <li class="y"><i class="fas fa-check"></i> Качество до 720p</li>
+                    <li class="n"><i class="fas fa-times"></i> Реклама каждые 20 мин</li>
+                    <li class="n"><i class="fas fa-times"></i> Full HD / 4K</li>
+                    <li class="n"><i class="fas fa-times"></i> Офлайн просмотр</li>
+                    <li class="n"><i class="fas fa-times"></i> Эксклюзивы</li>
+                </ul>
+                <button class="btn-disabled" disabled>Текущий план</button>
+            </div>
+
+            <!-- PREMIUM FEATURED -->
+            <div class="pc featured">
+                <div class="pc-ribbon red">🔥 Популярный выбор</div>
+                <div class="pc-icon ic-red"><i class="fas fa-bolt"></i></div>
+                <div class="pc-name">Premium</div>
+                <div class="pc-desc">Полный доступ ко всему контенту без ограничений</div>
+                <div class="pc-price-row">
+                    <span class="pc-amount" id="prem-price">
+                        {% if plans %}{{ plans[0].price }}{% else %}555{% endif %}
+                    </span>
+                    <span class="pc-cur">₸</span>
+                </div>
+                <div class="pc-per" id="prem-per">в месяц</div>
+                <div class="pc-economy" id="prem-save"></div>
+                <div class="pc-divider"></div>
+                <ul class="pc-feats">
+                    <li class="y"><i class="fas fa-check"></i> Все фильмы и сериалы</li>
+                    <li class="y"><i class="fas fa-check"></i> Full HD 1080p</li>
+                    <li class="y"><i class="fas fa-check"></i> Без рекламы</li>
+                    <li class="y"><i class="fas fa-check"></i> До 2 устройств</li>
+                    <li class="n"><i class="fas fa-times"></i> 4K Ultra HD</li>
+                    <li class="n"><i class="fas fa-times"></i> Офлайн просмотр</li>
+                </ul>
+                <button class="btn-buy red" id="btn-prem"
+                    onclick="openPayment(
+                        '{% if plans %}{{ plans[0].id }}{% else %}1{% endif %}',
+                        'Premium',
+                        '{% if plans %}{{ plans[0].price }}{% else %}555{% endif %}')">
+                    <i class="fas fa-crown"></i> Начать сейчас
+                </button>
+            </div>
+
+            <!-- ULTRA GOLD -->
+            <div class="pc gold">
+                <div class="pc-ribbon gold">⭐ Максимум выгоды</div>
+                <div class="pc-icon ic-gold"><i class="fas fa-crown"></i></div>
+                <div class="pc-name">Premium Ultra</div>
+                <div class="pc-desc">4K, офлайн, 5 устройств — абсолютный максимум</div>
+                <div class="pc-price-row">
+                    <span class="pc-amount gold-col" id="ultra-price">
+                        {% if plans|length > 1 %}{{ plans[1].price }}{% else %}5000{% endif %}
+                    </span>
+                    <span class="pc-cur">₸</span>
+                </div>
+                <div class="pc-per" id="ultra-per">
+                    в год · {% if plans|length > 1 %}{{ (plans[1].price / 12)|int }}{% else %}416{% endif %} ₸/мес
+                </div>
+                <div class="pc-economy" id="ultra-save">
+                    <i class="fas fa-piggy-bank"></i>
+                    Экономия {% if plans|length > 1 %}{{ (plans[0].price * 12 - plans[1].price)|int }}{% else %}1660{% endif %} ₸ в год
+                </div>
+                <div class="pc-divider"></div>
+                <ul class="pc-feats">
+                    <li class="y"><i class="fas fa-check"></i> Все фильмы и сериалы</li>
+                    <li class="g"><i class="fas fa-star"></i> 4K Ultra HD + HDR</li>
+                    <li class="y"><i class="fas fa-check"></i> Без рекламы</li>
+                    <li class="g"><i class="fas fa-star"></i> До 5 устройств</li>
+                    <li class="g"><i class="fas fa-star"></i> Офлайн просмотр</li>
+                    <li class="g"><i class="fas fa-star"></i> Новинки в день выхода</li>
+                </ul>
+                <button class="btn-buy gld" id="btn-ultra"
+                    onclick="openPayment(
+                        '{% if plans|length > 1 %}{{ plans[1].id }}{% else %}2{% endif %}',
+                        'Premium Ultra',
+                        '{% if plans|length > 1 %}{{ plans[1].price }}{% else %}2222{% endif %}')">
+                    <i class="fas fa-crown"></i> Получить Ultra
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ══ STATS ══ -->
+        <div class="stats-belt">
+            <div class="sb-cell">
+                <div class="sb-num" style="color:var(--acc)">5 000+</div>
+                <div class="sb-lbl">Фильмов и сериалов</div>
+            </div>
+            <div class="sb-cell">
+                <div class="sb-num" style="color:var(--blue)">50 000+</div>
+                <div class="sb-lbl">Активных зрителей</div>
+            </div>
+            <div class="sb-cell">
+                <div class="sb-num" style="color:var(--gold)">4.9 ★</div>
+                <div class="sb-lbl">Рейтинг сервиса</div>
+            </div>
+            <div class="sb-cell">
+                <div class="sb-num" style="color:var(--hi)">14 дн</div>
+                <div class="sb-lbl">Гарантия возврата</div>
+            </div>
+        </div>
+
+        <!-- ══ FEATURES ══ -->
+        <div class="feats-sec">
+            <div class="sec-title">Всё что входит в Premium</div>
+            <div class="sec-sub">Один тариф — весь мир кино без ограничений</div>
+            <div class="feats-grid">
+                <div class="fc">
+                    <div class="fc-ico ci-r"><i class="fas fa-ban"></i></div>
+                    <h4>Ноль рекламы</h4>
+                    <p>Никаких баннеров, пропусков, пауз. Только чистый просмотр от начала до конца.</p>
+                </div>
+                <div class="fc">
+                    <div class="fc-ico ci-y"><i class="fas fa-photo-video"></i></div>
+                    <h4>4K Ultra HD + HDR</h4>
+                    <p>Изображение настолько чёткое, что ощущение как в кинозале прямо дома.</p>
+                </div>
+                <div class="fc">
+                    <div class="fc-ico ci-b"><i class="fas fa-mobile-alt"></i></div>
+                    <h4>5 устройств сразу</h4>
+                    <p>ТВ, ноутбук, телефон, планшет — смотри одновременно на всех.</p>
+                </div>
+                <div class="fc">
+                    <div class="fc-ico ci-g"><i class="fas fa-download"></i></div>
+                    <h4>Офлайн просмотр</h4>
+                    <p>Скачай и смотри в поезде, самолёте, без интернета — когда угодно.</p>
+                </div>
+                <div class="fc">
+                    <div class="fc-ico ci-p"><i class="fas fa-bolt"></i></div>
+                    <h4>Новинки в день выхода</h4>
+                    <p>Новые эпизоды и релизы появляются сразу — ты первый кто видит.</p>
+                </div>
+                <div class="fc">
+                    <div class="fc-ico ci-o"><i class="fas fa-headset"></i></div>
+                    <h4>Поддержка 24/7</h4>
+                    <p>Ответим в чате за 5 минут. Любой вопрос — любое время суток.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ COMPARE TABLE ══ -->
+        <div class="compare-sec">
+            <div class="sec-title" style="margin-bottom:28px">Сравнение планов</div>
+            <div class="tbl-scroll" style="overflow-x:auto;border-radius:16px;border:1px solid var(--brd)">
+            <table class="compare-tbl">
+                <thead>
+                    <tr>
+                        <th style="min-width:200px">Возможность</th>
+                        <th>Базовый</th>
+                        <th class="hl">Premium</th>
+                        <th>Ultra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Весь каталог фильмов</td>
+                        <td><i class="fas fa-check c-yes"></i></td>
+                        <td class="hl"><i class="fas fa-check c-yes"></i></td>
+                        <td><i class="fas fa-check c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Максимальное качество</td>
+                        <td><span style="font-size:13px;color:var(--txt3)">720p</span></td>
+                        <td class="hl"><span style="font-size:13px;color:var(--hi);font-weight:700">1080p</span></td>
+                        <td><span style="font-size:13px;color:var(--gold);font-weight:700">4K HDR</span></td>
+                    </tr>
+                    <tr>
+                        <td>Реклама отсутствует</td>
+                        <td><i class="fas fa-times c-no" style="color:var(--acc)"></i></td>
+                        <td class="hl"><i class="fas fa-check c-yes"></i></td>
+                        <td><i class="fas fa-check c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Кол-во устройств</td>
+                        <td><span style="color:var(--txt3)">1</span></td>
+                        <td class="hl"><span style="color:var(--hi);font-weight:700">2</span></td>
+                        <td><span style="color:var(--gold);font-weight:700">5</span></td>
+                    </tr>
+                    <tr>
+                        <td>Офлайн просмотр</td>
+                        <td><i class="fas fa-times c-no"></i></td>
+                        <td class="hl"><i class="fas fa-times c-no"></i></td>
+                        <td><i class="fas fa-check c-yes" style="color:var(--gold)"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Новинки в день выхода</td>
+                        <td><i class="fas fa-times c-no"></i></td>
+                        <td class="hl"><i class="fas fa-times c-no"></i></td>
+                        <td><i class="fas fa-check c-yes" style="color:var(--gold)"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Поддержка</td>
+                        <td><span style="color:var(--txt3);font-size:13px">Email</span></td>
+                        <td class="hl"><span style="color:var(--hi);font-size:13px">Приоритет</span></td>
+                        <td><span style="color:var(--gold);font-size:13px">24/7 VIP</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <!-- ══ FAQ ══ -->
+        <div class="faq-sec">
+            <div class="sec-title" style="margin-bottom:28px">Часто задаваемые вопросы</div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    Можно ли отменить в любой момент?
+                    <i class="fas fa-chevron-down faq-ico"></i>
+                </button>
+                <div class="faq-a">Да, в любой момент через настройки профиля. Доступ сохраняется до конца оплаченного периода — деньги за оставшееся время не сгорают.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    Как работает возврат денег?
+                    <i class="fas fa-chevron-down faq-ico"></i>
+                </button>
+                <div class="faq-a">Если ты оформил подписку менее 14 дней назад и сервис не понравился — напиши в поддержку. Вернём деньги в течение 3 рабочих дней без лишних вопросов.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    На скольких устройствах одновременно?
+                    <i class="fas fa-chevron-down faq-ico"></i>
+                </button>
+                <div class="faq-a">Premium — 2 устройства одновременно. Ultra — до 5 устройств. Авторизуйтесь на любом и смотрите параллельно.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    Какие способы оплаты принимаются?
+                    <i class="fas fa-chevron-down faq-ico"></i>
+                </button>
+                <div class="faq-a">Visa, Mastercard, Kaspi Pay. Все транзакции защищены SSL-шифрованием. Данные карты на наших серверах не хранятся.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q" onclick="toggleFaq(this)">
+                    Есть ли пробный период?
+                    <i class="fas fa-chevron-down faq-ico"></i>
+                </button>
+                <div class="faq-a">Базовый план доступен бесплатно без ограничений по времени. Можно оценить каталог и интерфейс до покупки Premium.</div>
+            </div>
+        </div>
+
+    </div><!-- /pricing-wrap -->
+
+    <!-- ══ PAYMENT MODAL ══ -->
+    <div class="m-bg" id="payModal">
+        <div class="m-box">
+            <div class="m-top">
+                <div>
+                    <div style="font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Оформление подписки</div>
+                    <div class="m-plan-name" id="mPayName">—</div>
+                    <div class="m-plan-price" id="mPayPrice">—</div>
+                </div>
+                <button class="m-close" onclick="closePayment()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="paymentForm">
+                <input type="hidden" id="payPlanId">
+                <div class="m-body">
+                    <div class="mf">
+                        <label>Номер карты</label>
+                        <input type="text" id="cardNum" placeholder="0000  0000  0000  0000"
+                            maxlength="19" oninput="fmtCard(this)" autocomplete="cc-number">
+                    </div>
+                    <div class="mf-row">
+                        <div class="mf">
+                            <label>Срок действия</label>
+                            <input type="text" placeholder="MM / YY" maxlength="7"
+                                oninput="fmtExp(this)" autocomplete="cc-exp">
+                        </div>
+                        <div class="mf">
+                            <label>CVV</label>
+                            <input type="password" placeholder="•••" maxlength="3" autocomplete="cc-csc">
+                        </div>
+                    </div>
+                    <div class="mf">
+                        <label>Имя на карте</label>
+                        <input type="text" placeholder="IVAN IVANOV"
+                            style="text-transform:uppercase" autocomplete="cc-name">
+                    </div>
+                    <button type="submit" class="btn-pay" id="btnPay">
+                        <i class="fas fa-lock"></i> Оплатить
+                    </button>
+                    <div style="display:flex;align-items:center;gap:9px;padding:10px 12px;background:rgba(245,197,24,.06);border:1px solid rgba(245,197,24,.15);border-radius:9px;margin-top:2px;">
+                        <input type="checkbox" id="saveCard" name="saveCard"
+                            style="width:16px;height:16px;accent-color:var(--acc);cursor:pointer;flex-shrink:0">
+                        <label for="saveCard" style="font-size:13px;color:var(--txt2);cursor:pointer;user-select:none">
+                            Сохранить карту в профиле для быстрой оплаты
+                        </label>
+                    </div>
+                    <div class="m-secure">
+                        <i class="fas fa-shield-alt"></i>
+                        256-bit SSL · Данные зашифрованы · Kaspi Pay
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% endblock %}
+
+    {% block extra_js %}
+    <script>
+    // ── ДАННЫЕ ПЛАНОВ ──
+    const PLANS = {
+        month: {
+            premId:    '{% if plans %}{{ plans[0].id }}{% else %}1{% endif %}',
+            premPrice: '{% if plans %}{{ plans[0].price }}{% else %}555{% endif %}',
+            premPer:   'в месяц',
+            premSave:  '',
+            ultraId:   '{% if plans|length > 1 %}{{ plans[1].id }}{% else %}2{% endif %}',
+            ultraPrice:'{% if plans|length > 1 %}{{ plans[1].price }}{% else %}2222{% endif %}',
+            ultraPer:  '{% if plans|length > 1 %}в год · {{ (plans[1].price/12)|int }} ₸/мес{% else %}в год · 185 ₸/мес{% endif %}',
+            ultraSave: '<i class="fas fa-piggy-bank"></i> Экономия {% if plans|length > 1 %}{{ (plans[0].price*12 - plans[1].price)|int }}{% else %}4442{% endif %} ₸ в год',
+        }
+    };
+    // Для переключателя просто показываем динамику (без второго API тарифа)
+    let currentToggle = 'month';
+
+    function setToggle(mode) {
+        currentToggle = mode;
+        document.getElementById('btn-month').classList.toggle('on', mode === 'month');
+        document.getElementById('btn-year').classList.toggle('on', mode === 'year');
+
+        const premMonth  = parseInt(PLANS.month.premPrice)  || 555;
+        const ultraMonth = parseInt(PLANS.month.ultraPrice) || 2222;
+
+        if (mode === 'year') {
+            // Premium годовой (-25%)
+            const premYear  = Math.round(premMonth  * 12 * 0.75);
+            document.getElementById('prem-price').textContent = premYear;
+            document.getElementById('prem-per').textContent   = 'в год · ' + Math.round(premYear/12) + ' ₸/мес';
+            document.getElementById('prem-save').innerHTML    = '<i class="fas fa-piggy-bank"></i> Экономия ' + (premMonth*12 - premYear) + ' ₸ в год';
+            document.getElementById('btn-prem').setAttribute('onclick',
+                "openPayment('" + PLANS.month.premId + "', 'Premium (Год)', '" + premYear + "')");
+
+            // Ultra годовой (-25%)
+            const ultraYear = Math.round(ultraMonth * 12 * 0.75);
+            document.getElementById('ultra-price').textContent = ultraYear;
+            document.getElementById('ultra-per').textContent   = 'в год · ' + Math.round(ultraYear/12) + ' ₸/мес';
+            document.getElementById('ultra-save').innerHTML    = '<i class="fas fa-piggy-bank"></i> Экономия ' + (ultraMonth*12 - ultraYear) + ' ₸ в год';
+            document.getElementById('btn-ultra').setAttribute('onclick',
+                "openPayment('" + PLANS.month.ultraId + "', 'Premium Ultra (Год)', '" + ultraYear + "')");
+        } else {
+            // Premium месячный
+            document.getElementById('prem-price').textContent = PLANS.month.premPrice;
+            document.getElementById('prem-per').textContent   = 'в месяц';
+            document.getElementById('prem-save').innerHTML    = '';
+            document.getElementById('btn-prem').setAttribute('onclick',
+                "openPayment('" + PLANS.month.premId + "', 'Premium', '" + PLANS.month.premPrice + "')");
+
+            // Ultra месячный
+            document.getElementById('ultra-price').textContent = PLANS.month.ultraPrice;
+            document.getElementById('ultra-per').textContent   = PLANS.month.ultraPer;
+            document.getElementById('ultra-save').innerHTML    = PLANS.month.ultraSave;
+            document.getElementById('btn-ultra').setAttribute('onclick',
+                "openPayment('" + PLANS.month.ultraId + "', 'Premium Ultra', '" + PLANS.month.ultraPrice + "')");
+        }
+    }
+
+    // ── МОДАЛКА ОПЛАТЫ ──
+    function openPayment(id, name, price) {
+        document.getElementById('payPlanId').value  = id;
+        document.getElementById('mPayName').textContent  = name;
+        document.getElementById('mPayPrice').textContent = Number(price).toLocaleString('ru') + ' ₸';
+        const btn = document.getElementById('btnPay');
+        btn.innerHTML = '<i class="fas fa-lock"></i> Оплатить';
+        btn.disabled  = false;
+        btn.style.background = '';
+        document.getElementById('payModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closePayment() {
+        document.getElementById('payModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    document.getElementById('payModal').addEventListener('click', function(e) {
+        if (e.target === this) closePayment();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closePayment();
+    });
+
+    // ── ФОРМАТИРОВАНИЕ КАРТЫ ──
+    function fmtCard(el) {
+        let v = el.value.replace(/\D/g,'').slice(0,16);
+        el.value = v.replace(/(.{4})/g,'$1  ').trim();
+    }
+    function fmtExp(el) {
+        let v = el.value.replace(/\D/g,'').slice(0,4);
+        if (v.length >= 3) v = v.slice(0,2) + ' / ' + v.slice(2);
+        el.value = v;
+    }
+
+    // ── ОПЛАТА ──
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnPay');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обрабатываем...';
+        btn.disabled  = true;
+
+        const saveCard = document.getElementById('saveCard').checked;
+        const cardNum  = document.getElementById('cardNum').value.replace(/\s/g,'');
+        const cardMask = cardNum.length >= 4 ? '**** **** **** ' + cardNum.slice(-4) : '';
+
+        fetch('/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                plan_id:   document.getElementById('payPlanId').value,
+                save_card: saveCard,
+                card_mask: saveCard ? cardMask : null
+            })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                btn.innerHTML = '<i class="fas fa-check"></i> Готово!';
+                btn.style.background = 'linear-gradient(135deg,#16a34a,#22c55e)';
+                showToast('🎉 Подписка успешно оформлена!', 'success');
+                setTimeout(() => { closePayment(); location.reload(); }, 2000);
+            } else {
+                btn.innerHTML = '<i class="fas fa-lock"></i> Оплатить';
+                btn.disabled  = false;
+                showToast(d.error || 'Ошибка оплаты', 'error');
+            }
+        })
+        .catch(() => { 
+            btn.innerHTML = '<i class="fas fa-lock"></i> Оплатить';
+            btn.disabled  = false;
+            showToast('Ошибка соединения', 'error');
+        });
+    });
+
+    // ── FAQ ──
+    function toggleFaq(btn) {
+        const item   = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
+    }
+    </script>
+    {% endblock %}

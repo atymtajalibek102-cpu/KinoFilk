@@ -1,0 +1,28 @@
+/* Watch page styles */
+.watch-page-body .top-bar {
+    position: sticky !important;
+}
+
+.player-container-wrapper {
+    margin-bottom: 30px;
+}
+
+.player-container {
+    background: #0e0e0e;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.preview-layer {
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.5s ease;
+}
+
+.play-button {
+    box-shadow: 0 0 30px rgba(90,150,120,0.4);
+}
+
+.iframe-layer iframe {
+    border: none;
+}

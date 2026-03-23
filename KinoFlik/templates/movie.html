@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+{% block title %}{% if search_query %}Поиск: {{ search_query }}{% else %}Фильмы{% endif %} — KinoFlik{% endblock %}
+
+{% block extra_css %}
+<style>
+    .movies-page {
+        padding: 40px 60px 80px;
+    }
+
+    .page-header {
+        margin-bottom: 36px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        font-weight: 900;
+        color: white;
+        position: relative;
+        padding-bottom: 14px;
+        font-family: 'Unbounded', sans-serif;
+    }
+
+    .page-header h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+        border-radius: 3px;
+    }
+
+    .page-header p {
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .genre-filter {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 40px;
+    }
+
+    .gf-btn {
+        padding: 8px 18px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, .1);
+        background: rgba(255, 255, 255, .05);
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .gf-btn:hover,
+    .gf-btn.active {
+        background: rgba(192,40,40,0.1);
+        border-color: rgba(192,40,40,0.3);
+        color: var(--accent);
+    }
+
+    .movies-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 14px;
+    }
+
+    /* ── Карточки фильмов ── */
+    .movie-card {
+        background: #161616;
+        border-radius: 10px;
+        overflow: hidden;
+        text-decoration: none;
+        color: #fff;
+        display: block;
+        transition: transform .28s cubic-bezier(.4,0,.2,1),
+                    box-shadow .28s ease;
+        will-change: transform;
+    }
+    .movie-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 16px 48px rgba(0,0,0,.7);
+        z-index: 2;
+        position: relative;
+    }
+    .movie-poster-wrap {
+        position: relative;
+        aspect-ratio: 2/3;
+        overflow: hidden;
+    }
+    .movie-img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform .35s ease;
+        display: block;
+    }
+    .movie-badge-top {
+        position: absolute;
+        top: 8px; right: 8px;
+        background: rgba(17,22,20,.82);
+        backdrop-filter: blur(4px);
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-size: 12px; font-weight: 700;
+    }
+    /* Play-icon overlay */
+    .mc-ov {
+        position: absolute; inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 55%);
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity .22s;
+        border-radius: inherit;
+    }
+    .movie-card:hover .mc-ov { opacity: 1; }
+    .mc-ov-play {
+        width: 44px; height: 44px; border-radius: 50%;
+        background: rgba(192,40,40,.88);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; color: #fff;
+        box-shadow: 0 4px 18px rgba(192,40,40,.5);
+        transform: scale(.85); transition: transform .18s;
+    }
+    .movie-card:hover .mc-ov-play { transform: scale(1); }
+
+    /* ══ МИНИ-ПОПАП ══ */
+    #kfPopup {
+        position: fixed; z-index: 9999; width: 300px;
+        background: #161616; border: 1px solid rgba(255,255,255,.1);
+        border-radius: 12px; overflow: hidden;
+        box-shadow: 0 24px 60px rgba(17,22,20,.92);
+        pointer-events: none; opacity: 0;
+        transform: scale(.94) translateY(6px);
+        transition: opacity .2s, transform .2s;
+    }
+    #kfPopup.show { opacity:1; transform:scale(1) translateY(0); pointer-events:auto; }
+    #kfPopup .pp-img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:#0e0e0e; }
+    #kfPopup .pp-fog { position:absolute; top:0; left:0; right:0; height:175px;
+        background: linear-gradient(to bottom, transparent 40%, #161616 100%); }
+    #kfPopup .pp-body { padding:14px 16px 16px; }
+    #kfPopup .pp-title { font-size:15px; font-weight:800; color:#fff; margin-bottom:6px; line-height:1.25; }
+    #kfPopup .pp-meta  { display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,.4); margin-bottom:10px; flex-wrap:wrap; }
+    #kfPopup .pp-rt    { padding:2px 7px; border-radius:4px; font-size:12px; font-weight:700; color:#fff; }
+    #kfPopup .pp-desc  { font-size:13px; line-height:1.6; color:rgba(255,255,255,.55); margin-bottom:14px;
+        display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    #kfPopup .pp-btns  { display:flex; gap:8px; }
+    #kfPopup .pp-play  { flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+        background:#c02828; color:#fff; border-radius:7px; padding:9px;
+        font-size:13px; font-weight:700; text-decoration:none; transition:background .15s; }
+    #kfPopup .pp-play:hover { background:#e04040; }
+    #kfPopup .pp-info  { flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+        background:rgba(255,255,255,.08); color:rgba(255,255,255,.7); border-radius:7px; padding:9px;
+        font-size:13px; font-weight:700; text-decoration:none; border:1px solid rgba(255,255,255,.12);
+        transition:background .15s; }
+    #kfPopup .pp-info:hover { background:rgba(255,255,255,.14); }
+
+    .movie-meta-bottom {
+        padding: 12px;
+    }
+
+    .movie-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .movie-year {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .section-divider {
+        margin: 60px 0 30px;
+        font-size: 24px;
+        font-weight: 800;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .section-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="movies-page">
+    <div class="page-header">
+        <h1>🎬 Фильмы</h1>
+        <p>Каталог мирового кино в 4K</p>
+    </div>
+
+    <div class="genre-filter">
+        <a href="/movie" class="gf-btn {% if not genre %}active{% endif %}">Все</a>
+        {% set genres =
+        ['Боевик','Комедия','Драма','Триллер','Ужасы','Фантастика','Мелодрама','Мультфильм','Документальный','Криминал']
+        %}
+        {% for g in genres %}
+        <a href="/movie?genre={{ g }}" class="gf-btn {% if genre == g %}active{% endif %}">{{ g }}</a>
+        {% endfor %}
+    </div>
+
+    <div class="movies-grid">
+        {% for m in movies %}
+        <a href="/movie/{{ m.id }}" class="movie-card"
+           data-id="{{ m.id }}"
+           {% if m.tmdb_id %}data-tmdb="{{ m.tmdb_id }}" data-type="movie"{% endif %}
+           data-title="{{ m.title|e }}"
+           data-year="{{ m.year or '' }}"
+           data-rating="{{ m.rating or '' }}"
+           data-genre="{{ (m.genre or '').split(',')[0]|e }}"
+           data-desc="{{ (m.description or '')[:120]|e }}"
+           data-poster="{% if m.poster %}/static/posters/{{ m.poster }}{% else %}/static/img/no_poster.svg{% endif %}">
+            <div class="movie-poster-wrap">
+                <img src="{% if m.poster %}/static/posters/{{ m.poster }}{% else %}/static/img/no_poster.svg{% endif %}"
+                    class="movie-img" loading="lazy">
+                {% if m.rating %}<div class="movie-badge-top">★ {{ m.rating }}</div>{% endif %}
+                <div class="mc-ov"><div class="mc-ov-play"><i class="fas fa-play"></i></div></div>
+            </div>
+            <div class="movie-meta-bottom">
+                <div class="movie-title">{{ m.title }}</div>
+                <div class="movie-year">{% if m.year %}{{ m.year }}{% endif %}{% if m.genre %} • {{
+                    m.genre.split(',')[0] }}{% endif %}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if series %}
+    <h2 class="section-divider">📺 Сериалы</h2>
+    <div class="movies-grid">
+        {% for s in series %}
+        <a href="/series/{{ s.id }}" class="movie-card"
+           data-id="{{ s.id }}"
+           {% if s.tmdb_id %}data-tmdb="{{ s.tmdb_id }}" data-type="tv"{% endif %}
+           data-title="{{ s.title|e }}"
+           data-year="{{ s.year or '' }}"
+           data-rating="{{ s.rating or '' }}"
+           data-genre="{{ (s.genre or '').split(',')[0]|e }}"
+           data-desc="{{ (s.description or '')[:120]|e }}"
+           data-poster="{% if s.poster %}/static/posters/{{ s.poster }}{% else %}/static/img/no_poster.svg{% endif %}">
+            <div class="movie-poster-wrap">
+                <img src="{% if s.poster %}/static/posters/{{ s.poster }}{% else %}/static/img/no_poster.svg{% endif %}"
+                    class="movie-img" loading="lazy">
+                {% if s.rating %}<div class="movie-badge-top">★ {{ s.rating }}</div>{% endif %}
+                <div class="mc-ov"><div class="mc-ov-play"><i class="fas fa-play"></i></div></div>
+            </div>
+            <div class="movie-meta-bottom">
+                <div class="movie-title">{{ s.title }}</div>
+                <div class="movie-year">{% if s.year %}{{ s.year }}{% endif %}{% if s.seasons %} • {{ s.seasons }}
+                    сез.{% endif %}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ══ TMDB: Популярные ══ -->
+    <h2 class="section-divider" style="margin-top:50px">🔥 Популярные сейчас</h2>
+    <div class="movies-grid" id="tmdbPopular"></div>
+
+    <h2 class="section-divider">⭐ Топ рейтинга</h2>
+    <div class="movies-grid" id="tmdbTop"></div>
+
+    <h2 class="section-divider">🆕 Новинки</h2>
+    <div class="movies-grid" id="tmdbNew"></div>
+
+    <div id="tmdbLoadMore" style="text-align:center;margin:30px 0;">
+        <button onclick="loadMoreTmdb()" style="padding:12px 36px;background:#b02020;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">
+            Загрузить ещё
+        </button>
+    </div>
+</div>
+
+<!-- Попап -->
+<div id="kfPopup">
+    <div style="position:relative">
+        <img id="kfPpImg" class="pp-img" src="" alt="">
+        <div class="pp-fog"></div>
+    </div>
+    <div class="pp-body">
+        <div class="pp-title" id="kfPpTitle"></div>
+        <div class="pp-meta"  id="kfPpMeta"></div>
+        <div class="pp-desc"  id="kfPpDesc"></div>
+        <div class="pp-btns">
+            <a id="kfPpPlay" href="#" class="pp-play"><i class="fas fa-play"></i> Смотреть</a>
+            <a id="kfPpInfo" href="#" class="pp-info"><i class="fas fa-info-circle"></i> Инфо</a>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+const TMDB_KEY = '15d2ea6d0dc1d476efbca3eba2b9bbfb';
+const FILTER_GENRE = '{{ genre }}';
+
+const _seenTmdb = new Set();
+{% for m in movies %}{% if m.tmdb_id %}_seenTmdb.add({{ m.tmdb_id }});{% endif %}{% endfor %}
+
+let tmdbMorePage = 2;
+
+function tmdbCard(m) {
+    var title = (m.title || m.name || '').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    var year  = (m.release_date || '').split('-')[0];
+    var rat   = m.vote_average ? m.vote_average.toFixed(1) : '';
+    var poster = m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '/static/img/no_poster.svg';
+    var desc  = (m.overview || '').replace(/"/g,'&quot;').slice(0,120);
+    var ratBg = parseFloat(rat)>=7 ? 'rgba(34,139,34,.92)' : parseFloat(rat)>=5 ? 'rgba(190,140,0,.9)' : 'rgba(100,100,100,.85)';
+    return `<a href="/watch/tmdb/${m.id}" class="movie-card kf-pop-card"
+        data-tmdb="${m.id}" data-type="movie"
+        data-title="${title}" data-year="${year}" data-rating="${rat}"
+        data-desc="${desc}" data-poster="${poster}">
+        <div class="movie-poster-wrap">
+            <img src="${poster}" class="movie-img" loading="lazy" onerror="this.src='/static/img/no_poster.svg'">
+            ${rat ? `<div class="movie-badge-top" style="background:${ratBg}">★ ${rat}</div>` : ''}
+            <div class="mc-ov"><div class="mc-ov-play"><i class="fas fa-play"></i></div></div>
+        </div>
+        <div class="movie-meta-bottom">
+            <div class="movie-title">${title}</div>
+            <div class="movie-year">${year}</div>
+        </div>
+    </a>`;
+}
+
+async function loadTmdbSection(containerId, endpoint, pages=3) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = '<div style="color:rgba(255,255,255,.3);padding:20px;grid-column:1/-1;text-align:center"><i class="fas fa-spinner fa-spin"></i> Загрузка...</div>';
+    var cards = [];
+    for (var p=1; p<=pages; p++) {
+        try {
+            var r = await fetch(`https://api.themoviedb.org/3/movie/${endpoint}?api_key=${TMDB_KEY}&language=ru-RU&page=${p}`);
+            var d = await r.json();
+            var filtered = (d.results||[]).filter(m => {
+                if (!m.poster_path || m.vote_average < 5) return false;
+                if (_seenTmdb.has(m.id)) return false;
+                _seenTmdb.add(m.id);
+                return true;
+            });
+            cards = cards.concat(filtered);
+        } catch(e) {}
+    }
+    el.innerHTML = cards.length
+        ? cards.map(tmdbCard).join('')
+        : '<div style="color:rgba(255,255,255,.3);padding:20px;grid-column:1/-1;">Ничего не найдено</div>';
+    attachKfPopups(el);
+}
+
+async function loadMoreTmdb() {
+    var el = document.getElementById('tmdbNew');
+    if (!el) return;
+    try {
+        var r = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_KEY}&language=ru-RU&page=${tmdbMorePage}`);
+        var d = await r.json();
+        tmdbMorePage++;
+        var cards = (d.results||[]).filter(m => m.poster_path && !_seenTmdb.has(m.id) && (_seenTmdb.add(m.id)||true));
+        var html = cards.map(tmdbCard).join('');
+        el.insertAdjacentHTML('beforeend', html);
+        attachKfPopups(el);
+    } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadTmdbSection('tmdbPopular', 'popular', 3);
+    loadTmdbSection('tmdbTop', 'top_rated', 3);
+    loadTmdbSection('tmdbNew', 'now_playing', 2);
+});
+
+/* ══ КF ПОПАП ══ */
+var kfPopup  = document.getElementById('kfPopup');
+var kfTimer  = null;
+var kfActive = null;
+
+function kfRateBg(v) {
+    if (v >= 7) return 'background:rgba(34,139,34,.92)';
+    if (v >= 5) return 'background:rgba(200,150,0,.9)';
+    return 'background:rgba(180,30,30,.9)';
+}
+
+async function showKfPopup(card, ev) {
+    var tmdb = card.dataset.tmdb;
+    var type = card.dataset.type || 'movie';
+
+    var title, year, rating, desc, poster, genres, seasons, watchUrl, infoUrl;
+
+    if (tmdb) {
+        try {
+            var ep = type === 'tv' ? 'tv' : 'movie';
+            var d  = await fetch('https://api.themoviedb.org/3/'+ep+'/'+tmdb+'?api_key='+TMDB_KEY+'&language=ru-RU').then(r=>r.json());
+            title   = d.name || d.title || d.original_title || '';
+            year    = ((d.first_air_date || d.release_date || '')).split('-')[0];
+            rating  = d.vote_average ? d.vote_average.toFixed(1) : '—';
+            desc    = d.overview || '';
+            genres  = (d.genres||[]).slice(0,3).map(g=>g.name).join(', ');
+            var COUNTRY_MAP = {US:'США',GB:'Великобритания',FR:'Франция',DE:'Германия',JP:'Япония',KR:'Корея',IT:'Италия',ES:'Испания',RU:'Россия',CN:'Китай',IN:'Индия',CA:'Канада',AU:'Австралия'};
+            var countries = (d.production_countries||[]).slice(0,2).map(function(c){ return COUNTRY_MAP[c.iso_3166_1]||c.name; }).join(', ');
+            seasons = d.number_of_seasons ? d.number_of_seasons+' сез.' : '';
+            poster  = d.backdrop_path  ? 'https://image.tmdb.org/t/p/w780'+d.backdrop_path
+                    : d.poster_path    ? 'https://image.tmdb.org/t/p/w500'+d.poster_path : '';
+            watchUrl = type === 'tv' ? '/watch/tv/'+tmdb : '/watch/tmdb/'+tmdb;
+            infoUrl  = type === 'tv' ? '/series/tmdb/'+tmdb : '/movie/'+card.dataset.id;
+        } catch(_) { return; }
+    } else {
+        title    = card.dataset.title || '';
+        year     = card.dataset.year || '';
+        rating   = card.dataset.rating || '—';
+        desc     = card.dataset.desc || '';
+        genres   = card.dataset.genre || '';
+        seasons  = '';
+        poster   = card.dataset.poster || '';
+        var id   = card.dataset.id;
+        watchUrl = '/movie/'+id;
+        infoUrl  = '/movie/'+id;
+    }
+
+    var rc = kfRateBg(parseFloat(rating)||0);
+    document.getElementById('kfPpImg').src = poster;
+    document.getElementById('kfPpTitle').textContent = title;
+    document.getElementById('kfPpMeta').innerHTML =
+        '<span class="pp-rt" style="'+rc+'">★ '+rating+'</span>'+
+        (year    ? '<span>'+year+'</span>'    : '')+
+        (seasons ? '<span>'+seasons+'</span>' : '')+
+        (countries ? '<span>🌍 '+countries+'</span>' : '')+
+        (genres  ? '<span>'+genres+'</span>'  : '');
+    document.getElementById('kfPpDesc').textContent = desc;
+    document.getElementById('kfPpPlay').href = watchUrl;
+    document.getElementById('kfPpInfo').href = infoUrl;
+
+    posKfPopup(ev);
+    kfPopup.classList.add('show');
+}
+
+function posKfPopup(e) {
+    var pw=300, gap=14, vw=window.innerWidth, vh=window.innerHeight;
+    var x=e.clientX+gap, y=e.clientY-80;
+    if (x+pw > vw-10) x = e.clientX-pw-gap;
+    var ph = kfPopup.offsetHeight || 360;
+    if (y+ph > vh-10) y = vh-ph-10;
+    if (y < 10) y = 10;
+    kfPopup.style.left = x+'px';
+    kfPopup.style.top  = y+'px';
+}
+
+function hideKfPopup() { kfPopup.classList.remove('show'); kfActive = null; }
+if (kfPopup) kfPopup.addEventListener('mouseleave', hideKfPopup);
+
+function attachKfPopups(container) {
+    (container||document).querySelectorAll('.movie-card, .kf-pop-card').forEach(function(card) {
+        if (card._kfBound) return;
+        card._kfBound = true;
+        card.addEventListener('mouseenter', function(e) {
+            if (kfActive === card) return;
+            clearTimeout(kfTimer); kfActive = card;
+            kfTimer = setTimeout(function(){ showKfPopup(card, e); }, 400);
+        });
+        card.addEventListener('mouseleave', function() {
+            clearTimeout(kfTimer);
+            setTimeout(function(){ if (!kfPopup.matches(':hover')) hideKfPopup(); }, 100);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() { attachKfPopups(document.body); });
+</script>
+{% endblock %}
+{% endblock %}

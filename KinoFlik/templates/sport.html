@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% block title %}Спорт — KinoFlik{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Основные стили страницы */
+.sp-hero {
+    position: relative; padding: 44px 40px 36px;
+    background: linear-gradient(135deg,#0e0e0e 0%,rgba(192,40,40,.12) 50%,#0e0e0e 100%);
+    border-bottom: 1px solid var(--border); overflow: hidden;
+}
+.sp-hero::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse 60% 80% at 80% 50%,rgba(192,40,40,.08) 0%,transparent 70%);
+    pointer-events:none;
+}
+.sp-hero-title { font-size:32px; font-weight:900; letter-spacing:-.5px; margin-bottom:6px; }
+.sp-hero-title span { color:var(--accent); }
+.sp-hero-sub { color:var(--text-muted); font-size:14px; }
+.sp-live-badge {
+    display:inline-flex; align-items:center; gap:6px; margin-top:12px;
+    padding:5px 14px; background:rgba(192,40,40,.15); border:1px solid rgba(192,40,40,.3);
+    border-radius:20px; color:var(--accent); font-size:13px; font-weight:700;
+}
+.sp-live-badge .dot {
+    width:7px; height:7px; background:var(--accent);
+    border-radius:50%; animation:spBlink 1s infinite;
+}
+@keyframes spBlink{0%,100%{opacity:1}50%{opacity:.2}}
+
+.sp-refresh-bar {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 40px; border-bottom:1px solid var(--border);
+    font-size:12px; color:var(--text-muted);
+}
+.sp-spinner {
+    width:14px; height:14px; border:2px solid var(--border);
+    border-top-color:var(--accent); border-radius:50%;
+    animation:spSpin .8s linear infinite; display:none;
+}
+.loading .sp-spinner { display:block; }
+@keyframes spSpin{to{transform:rotate(360deg)}}
+
+.sp-filters {
+    display:flex; gap:8px; padding:16px 40px;
+    overflow-x:auto; border-bottom:1px solid var(--border); scrollbar-width:none;
+}
+.sp-filters::-webkit-scrollbar{display:none}
+.sp-filter-btn {
+    display:flex; align-items:center; gap:6px;
+    padding:8px 18px; border-radius:20px; border:1px solid var(--border);
+    background:var(--bg-card); color:var(--text-secondary);
+    font-size:13px; font-weight:600; cursor:pointer; transition:all .2s;
+    white-space:nowrap; flex-shrink:0;
+}
+.sp-filter-btn:hover { border-color:var(--border-hover); color:var(--text-primary); }
+.sp-filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.sp-filter-btn .cnt {
+    background:rgba(255,255,255,.18); border-radius:10px;
+    padding:1px 7px; font-size:11px;
+}
+
+.sp-content { padding:24px 40px 60px; }
+.sp-section { margin-bottom:40px; }
+.sp-section-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;
+}
+.sp-section-title {
+    display:flex; align-items:center; gap:10px; font-size:19px; font-weight:800;
+}
+.sp-bar { width:4px; height:22px; background:var(--accent); border-radius:2px; }
+.sp-section-count { font-size:13px; color:var(--text-muted); }
+
+.sp-grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px;
+}
+.sp-card {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:16px; overflow:hidden; cursor:pointer; transition:all .25s;
+}
+.sp-card:hover {
+    border-color:rgba(255,255,255,.15); transform:translateY(-2px);
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.sp-card-league {
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    background:rgba(255,255,255,.03); border-bottom:1px solid var(--border);
+    font-size:12px; font-weight:600; color:var(--text-muted);
+}
+.sp-card-body { padding:16px 14px 12px; }
+.sp-match { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.sp-team { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; }
+.sp-team-logo {
+    width:44px; height:44px; border-radius:8px;
+    object-fit:contain; background:rgba(255,255,255,.05); padding:4px;
+}
+.sp-team-placeholder {
+    width:44px; height:44px; border-radius:8px;
+    background:var(--bg-secondary); display:flex; align-items:center;
+    justify-content:center; font-size:20px; border:1px solid var(--border);
+}
+.sp-team-name {
+    font-size:13px; font-weight:700; color:var(--text-primary);
+    max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.sp-center { flex-shrink:0; text-align:center; }
+.sp-score { font-size:26px; font-weight:900; letter-spacing:2px; line-height:1; }
+.sp-vs { font-size:18px; font-weight:700; color:var(--text-muted); }
+.sp-match-time { font-size:12px; color:var(--text-muted); margin-top:4px; }
+
+.sp-status {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 14px; border-top:1px solid var(--border); font-size:12px;
+}
+.sp-badge-live { display:flex; align-items:center; gap:5px; color:var(--accent); font-weight:700; }
+.sp-badge-live .dot { width:6px; height:6px; background:var(--accent); border-radius:50%; animation:spBlink 1s infinite; }
+.sp-badge-soon { color:#f59e0b; font-weight:600; }
+.sp-badge-fin { color:var(--text-muted); }
+.sp-extra { color:var(--text-muted); font-size:11px; }
+
+.sp-skeleton {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:16px; height:150px;
+    animation:spPulse 1.4s ease infinite;
+}
+@keyframes spPulse{0%,100%{opacity:.35}50%{opacity:.7}}
+.sp-empty {
+    grid-column:1/-1; text-align:center; padding:50px 20px; color:var(--text-muted);
+}
+.sp-empty i { font-size:44px; display:block; margin-bottom:12px; opacity:.3; }
+
+/* Стили для модального окна */
+.sp-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+    opacity: 0; transition: opacity 0.3s;
+}
+.sp-modal-overlay.active { display: flex; opacity: 1; }
+.sp-modal {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 24px; max-width: 400px; width: 90%; text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s;
+}
+.sp-modal-overlay.active .sp-modal { transform: translateY(0); }
+.sp-modal-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text-primary); }
+.sp-modal-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+.sp-modal-btns { display: flex; flex-direction: column; gap: 10px; }
+.sp-btn-primary {
+    background: #b02020; color: #fff; border: none; padding: 12px; border-radius: 12px;
+    font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+}
+.sp-btn-primary:hover { opacity: 0.9; }
+.sp-btn-secondary {
+    background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--border);
+    padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+}
+.sp-btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+@media(max-width:768px){
+    .sp-hero{padding:24px 16px 20px}
+    .sp-hero-title{font-size:22px}
+    .sp-filters{padding:12px 16px}
+    .sp-refresh-bar{padding:10px 16px}
+    .sp-content{padding:16px 16px 80px}
+    .sp-grid{grid-template-columns:1fr}
+    .sp-team-logo,.sp-team-placeholder{width:36px;height:36px}
+    .sp-score{font-size:22px}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sp-hero">
+    <div class="sp-hero-title">🏆 <span>Спорт</span> в прямом эфире</div>
+    <div class="sp-hero-sub">Футбол, баскетбол, хоккей, теннис, UFC и другие события</div>
+    <div class="sp-hero-sub" id="tz-info" style="margin-top: 8px; color: var(--accent); font-weight: 600;"></div>
+    
+    <div class="sp-live-badge" id="liveBadge" style="display:none">
+        <div class="dot"></div>
+        <span id="liveText">0 матчей онлайн</span>
+    </div>
+</div>
+
+<div class="sp-refresh-bar" id="refreshBar">
+    <div class="sp-spinner"></div>
+    <span id="lastUpdate">Загрузка данных...</span>
+</div>
+
+<div class="sp-filters">
+    <button class="sp-filter-btn active" onclick="setF('all',this)">Все <span class="cnt" id="cnt-all">–</span></button>
+    <button class="sp-filter-btn" onclick="setF('live',this)">🔴 LIVE <span class="cnt" id="cnt-live">0</span></button>
+    <button class="sp-filter-btn" onclick="setF('football',this)">⚽ Футбол <span class="cnt" id="cnt-football">–</span></button>
+    <button class="sp-filter-btn" onclick="setF('basketball',this)">🏀 Баскетбол <span class="cnt" id="cnt-basketball">–</span></button>
+    <button class="sp-filter-btn" onclick="setF('hockey',this)">🏒 Хоккей <span class="cnt" id="cnt-hockey">–</span></button>
+    <button class="sp-filter-btn" onclick="setF('tennis',this)">🎾 Теннис <span class="cnt" id="cnt-tennis">–</span></button>
+    <button class="sp-filter-btn" onclick="setF('mma',this)">🥊 ММА <span class="cnt" id="cnt-mma">–</span></button>
+    <button class="sp-filter-btn" onclick="setF('other',this)">🏈 Другое <span class="cnt" id="cnt-other">–</span></button>
+    <button class="sp-filter-btn" onclick="setF('archive',this)">🗄️ Архив <span class="cnt" id="cnt-archive">–</span></button>
+    <button class="sp-filter-btn" onclick="load()" style="margin-left:auto; border-color:var(--accent); color:var(--accent);">↻ Обновить</button>
+</div>
+
+<div class="sp-content">
+    <div class="sp-section" id="sec-live">
+        <div class="sp-section-header">
+            <div class="sp-section-title"><div class="sp-bar"></div> 🔴 В прямом эфире</div>
+            <span class="sp-section-count" id="sc-live"></span>
+        </div>
+        <div class="sp-grid" id="g-live">
+            <div class="sp-skeleton"></div><div class="sp-skeleton"></div><div class="sp-skeleton"></div>
+        </div>
+    </div>
+    
+    <div class="sp-section" id="sec-today">
+        <div class="sp-section-header">
+            <div class="sp-section-title"><div class="sp-bar"></div> 📅 Предстоящие</div>
+            <span class="sp-section-count" id="sc-today"></span>
+        </div>
+        <div class="sp-grid" id="g-today">
+            <div class="sp-skeleton"></div><div class="sp-skeleton"></div><div class="sp-skeleton"></div>
+        </div>
+    </div>
+    
+    <div class="sp-section" id="sec-fin">
+        <div class="sp-section-header">
+            <div class="sp-section-title"><div class="sp-bar" style="background:#444"></div> ✅ Недавно завершённые</div>
+            <span class="sp-section-count" id="sc-fin"></span>
+        </div>
+        <div class="sp-grid" id="g-fin"></div>
+    </div>
+
+    <div class="sp-section" id="sec-archive" style="display:none;">
+        <div class="sp-section-header">
+            <div class="sp-section-title"><div class="sp-bar" style="background:#222"></div> 🗄️ Архив завершенных матчей</div>
+            <span class="sp-section-count" id="sc-archive"></span>
+        </div>
+        <div class="sp-grid" id="g-archive"></div>
+    </div>
+</div>
+
+<div class="sp-modal-overlay" id="streamModal" onclick="closeModal(event)">
+    <div class="sp-modal" onclick="event.stopPropagation()">
+        <div class="sp-modal-title" id="modalMatchName">Команда 1 vs Команда 2</div>
+        <div class="sp-modal-desc">
+            К сожалению, прямого видео-плеера для этого матча сейчас нет. Вы можете поискать трансляцию на наших ТВ-каналах или найти её в интернете.
+        </div>
+        <div class="sp-modal-btns">
+            <button class="sp-btn-primary" onclick="goToTv()">Перейти к ТВ-каналам</button>
+            <button class="sp-btn-secondary" id="btnWebSearch">Искать в сети</button>
+            <button class="sp-btn-secondary" style="border:none; background:transparent; color:var(--text-muted);" onclick="closeModal(true)">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var ALL = [], curF = 'all', REFRESH = 180, timer;
+
+document.addEventListener('DOMContentLoaded', function() {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    var tzEl = document.getElementById('tz-info');
+    if(tzEl) tzEl.textContent = 'Время матчей: ваш местный часовой пояс (' + tz + ')';
+});
+
+function load(isBackground = false) {
+    if (!isBackground) document.getElementById('refreshBar').classList.add('loading');
+    
+    fetch('/api/sport/events')
+        .then(function(r){return r.json();})
+        .then(function(d){
+            document.getElementById('refreshBar').classList.remove('loading');
+            if (d.ok) {
+                ALL = d.events || [];
+                render();
+                if (!isBackground) startCD(); 
+                var lu = document.getElementById('lastUpdate');
+                if (lu) lu.textContent = 'Последнее обновление: ' + new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
+            } else { 
+                if (!isBackground) showErr(); 
+            }
+        }).catch(function(){ 
+            document.getElementById('refreshBar').classList.remove('loading'); 
+            if (!isBackground) showErr(); 
+        });
+}
+
+function showErr() {
+    ['g-live','g-today','g-fin','g-archive'].forEach(function(id){
+        var el=document.getElementById(id);
+        if(el) el.innerHTML='<div class="sp-empty"><i class="fas fa-exclamation-circle"></i>Нет данных. Проверьте подключение.</div>';
+    });
+}
+
+function render() {
+    var src = curF === 'all' ? ALL : 
+              curF === 'live' ? ALL.filter(function(e){return e.state === 'in';}) : 
+              curF === 'archive' ? ALL.filter(function(e){return e.state === 'post';}) :
+              ALL.filter(function(e){return e.sport === curF;});
+
+    var live = [], pre = [], fin = [], archive = [];
+
+    src.forEach(function(e) {
+        if (e.state === 'in') {
+            live.push(e);
+        } else if (e.state === 'pre') {
+            pre.push(e);
+        } else if (e.state === 'post') {
+            if (curF !== 'archive') {
+                fin.push(e);
+            } else {
+                archive.push(e);
+            }
+        }
+    });
+
+    setCnt('all', ALL.length); 
+    setCnt('live', ALL.filter(function(e){return e.state==='in';}).length);
+    setCnt('archive', ALL.filter(function(e){return e.state==='post';}).length);
+    ['football','basketball','hockey','tennis','mma','other'].forEach(function(s){
+        setCnt(s, ALL.filter(function(e){return e.sport===s;}).length);
+    });
+
+    var lc = ALL.filter(function(e){return e.state==='in';}).length;
+    var lb=document.getElementById('liveBadge'), lt=document.getElementById('liveText');
+    if(lb){ lb.style.display=lc?'inline-flex':'none'; if(lt) lt.textContent=lc+' '+(lc===1?'матч':lc<5?'матча':'матчей')+' онлайн'; }
+
+    if (curF === 'archive') {
+        document.getElementById('sec-live').style.display = 'none';
+        document.getElementById('sec-today').style.display = 'none';
+        document.getElementById('sec-fin').style.display = 'none';
+        document.getElementById('sec-archive').style.display = 'block';
+        drawSec('g-archive','sec-archive','sc-archive', archive);
+    } else {
+        document.getElementById('sec-archive').style.display = 'none';
+        document.getElementById('sec-live').style.display = 'block';
+        document.getElementById('sec-today').style.display = 'block';
+        document.getElementById('sec-fin').style.display = 'block';
+        
+        drawSec('g-live','sec-live','sc-live',live);
+        drawSec('g-today','sec-today','sc-today',pre);
+        drawSec('g-fin','sec-fin','sc-fin',fin);
+    }
+}
+
+function drawSec(gId,sId,cId,events) {
+    var sec=document.getElementById(sId), grid=document.getElementById(gId), cnt=document.getElementById(cId);
+    if(!grid) return;
+    if(sec) sec.style.display=(events.length===0 && curF!=='all' && curF!=='archive')?'none':'';
+    if(cnt) cnt.textContent=events.length?events.length+' событий':'';
+    grid.innerHTML=events.length ? events.map(card).join('') : '<div class="sp-empty"><i class="fas fa-calendar-times"></i>Нет событий</div>';
+}
+
+function card(ev) {
+    function logo(src,name,ic){
+        return src
+            ? '<img class="sp-team-logo" src="'+src+'" alt="'+name+'" onerror="this.outerHTML=\'<div class=&quot;sp-team-placeholder&quot;>'+ic+'</div>\'">'
+            : '<div class="sp-team-placeholder">'+ic+'</div>';
+    }
+    var center = ev.state==='in'
+        ? '<div class="sp-score" style="color:var(--accent)">'+( ev.score||'–:–')+'</div><div class="sp-match-time" style="color:var(--accent)">'+(ev.detail||'LIVE')+'</div>'
+        : ev.state==='post' && ev.score
+        ? '<div class="sp-score" style="color:var(--text-muted)">'+ev.score+'</div><div class="sp-match-time">Завершён</div>'
+        : '<div class="sp-vs">VS</div><div class="sp-match-time">'+ev.time+'</div>';
+
+    var badge = ev.state==='in'
+        ? '<div class="sp-badge-live"><div class="dot"></div>LIVE '+(ev.detail||'')+'</div>'
+        : ev.state==='pre'
+        ? '<div class="sp-badge-soon">⏰ '+ev.date+' '+ev.time+'</div>'
+        : '<div class="sp-badge-fin">✓ Завершён</div>';
+
+    var extra = ev.broadcast
+        ? '<div class="sp-extra"><i class="fas fa-tv" style="margin-right:3px"></i>'+ev.broadcast+'</div>'
+        : ev.venue
+        ? '<div class="sp-extra"><i class="fas fa-map-marker-alt" style="margin-right:3px"></i>'+ev.venue+'</div>'
+        : '<div></div>';
+
+    var matchName = ev.home + ' - ' + ev.away;
+    return '<div class="sp-card" onclick="openEv(\''+ev.state+'\', \''+matchName.replace(/'/g, "\\'")+'\')">'
+        +'<div class="sp-card-league"><span style="margin-right:4px">'+ev.icon+'</span>'+ev.sport_name+'</div>'
+        +'<div class="sp-card-body"><div class="sp-match">'
+        +'<div class="sp-team">'+logo(ev.home_logo,ev.home,ev.icon)+'<div class="sp-team-name">'+ev.home+'</div></div>'
+        +'<div class="sp-center">'+center+'</div>'
+        +'<div class="sp-team">'+logo(ev.away_logo,ev.away,ev.icon)+'<div class="sp-team-name">'+ev.away+'</div></div>'
+        +'</div></div>'
+        +'<div class="sp-status">'+badge+extra+'</div>'
+        +'</div>';
+}
+
+function setF(f,btn) {
+    curF=f;
+    document.querySelectorAll('.sp-filter-btn').forEach(function(b){b.classList.remove('active');});
+    if(btn) btn.classList.add('active');
+    render();
+}
+function setCnt(k,n){ var el=document.getElementById('cnt-'+k); if(el) el.textContent=n; }
+
+function openEv(state, matchName){ 
+    if (state === 'post') {
+        showToast('Этот матч уже завершен', 'info');
+    } else {
+        document.getElementById('modalMatchName').textContent = matchName;
+        
+        var searchQuery = encodeURIComponent('Смотреть ' + matchName + ' онлайн трансляция');
+        var searchBtn = document.getElementById('btnWebSearch');
+        searchBtn.onclick = function() {
+            window.open('https://www.google.com/search?q=' + searchQuery, '_blank');
+        };
+        
+        document.getElementById('streamModal').classList.add('active');
+    }
+}
+
+function closeModal(force) {
+    if (force === true || force.target === document.getElementById('streamModal')) {
+        document.getElementById('streamModal').classList.remove('active');
+    }
+}
+
+function goToTv() {
+    window.location.href = '/tv';
+}
+
+function startCD(){
+    clearInterval(timer); 
+    timer = setInterval(function(){
+        load(true); 
+    }, REFRESH * 1000);
+}
+
+function showToast(msg, type) {
+    if (typeof window.showToast === 'function') {
+        window.showToast(msg, type);
+    } else {
+        alert(msg);
+    }
+}
+
+load();
+</script>
+{% endblock %}
