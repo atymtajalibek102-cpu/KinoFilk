@@ -43,3 +43,4 @@ desktop.ini
 *.tmp
 *.bak
 *.swp
+.env
